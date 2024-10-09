@@ -13,4 +13,3 @@ Welcome to the documentation for **DRCDV**, the **Dynamic and Responsive Chat Ap
 
 - **Project Description**:
   The application primarily offers a list of active users, allowing the initiation of chats with one or more individuals. Users can exchange text messages, images, data visualization files, and code snippets. However, all users must register their credentials to access the chat space and connect with others.
-  ...
