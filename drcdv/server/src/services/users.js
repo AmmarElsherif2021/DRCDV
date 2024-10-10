@@ -47,3 +47,14 @@ export async function getUserInfoById(userId) {
     return { username: userId }
   }
 }
+
+//get users function
+export async function getUsers() {
+  try {
+    const users = await User.find()
+    if (!users) return { error: 'no users' }
+    return users
+  } catch (err) {
+    return { error: err }
+  }
+}

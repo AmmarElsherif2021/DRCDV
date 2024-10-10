@@ -1,4 +1,9 @@
-import { createUser, loginUser, getUserInfoById } from '../services/users.js'
+import {
+  createUser,
+  loginUser,
+  getUserInfoById,
+  getUsers,
+} from '../services/users.js'
 export function usersRoutes(app) {
   //create user route
 
@@ -32,5 +37,11 @@ export function usersRoutes(app) {
   app.get('/api/v1/users/:id', async (req, res) => {
     const userInfo = await getUserInfoById(req.params.id)
     return res.status(200).send(userInfo)
+  })
+
+  //get users by id route..
+  app.get('/api/v1/users', async (req, res) => {
+    const usersInfo = await getUsers()
+    return res.status(200).send(usersInfo)
   })
 }

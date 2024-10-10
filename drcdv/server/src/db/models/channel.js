@@ -1,12 +1,16 @@
 import mongoose, { Schema } from 'mongoose'
 const channelSchema = new Schema(
   {
-    name: { type: String, required: true },
-    description: { type: String },
-    members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
+    title: { type: String, required: true },
+    members: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+        role: { type: String, enum: ['admin', 'guest'], default: 'guest' },
+      },
+    ],
+    messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'message' }],
   },
   { timestamps: true },
 )
 
-export const Channel = mongoose.model('Channel', channelSchema)
+export const Channel = mongoose.model('channel', channelSchema)
