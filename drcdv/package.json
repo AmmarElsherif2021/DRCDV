@@ -1,22 +1,32 @@
 {
-  "name": "client",
+  "name": "drcdv",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
     "lint": "eslint src",
+    "preview": "vite preview",
     "prepare": "husky install"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.5",
+    "@material-tailwind/react": "^2.1.10",
+    "@tanstack/react-query": "^5.12.2",
+    "bcrypt": "^5.1.1",
+    "jwt-decode": "^4.0.0",
+    "mongodb": "^6.3.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.21.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
@@ -26,7 +36,9 @@
     "globals": "^15.9.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.1.0",
+    "postcss": "^8.4.47",
     "prettier": "^3.1.0",
+    "tailwindcss": "^3.4.13",
     "vite": "^5.4.8"
   },
   "lint-staged": {
@@ -34,5 +46,10 @@
       "npx prettier --write",
       "npx eslint --fix"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test"
+    }
   }
 }
