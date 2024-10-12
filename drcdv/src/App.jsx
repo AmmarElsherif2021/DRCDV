@@ -6,6 +6,7 @@ import { Signup } from './sections/Signup'
 import { AuthContextProvider } from './contexts/AuthContext.jsx'
 import { Login } from './sections/Login.jsx'
 import { ChannelsBoard } from './sections/ChannelsBoard.jsx'
+import './index.css'
 const queryClient = new QueryClient()
 export default function App() {
   const router = createBrowserRouter([

@@ -1,11 +1,21 @@
 import PropTypes from 'prop-types'
+import { Card, ListGroup } from 'react-bootstrap'
+
 export function ChannelCard({ channelId, title, members }) {
   return (
-    <div style={{ margin: '1vw', width: '15vw', border: 'solid' }}>
-      <h3>{title}</h3>
-      <p>{channelId}</p>
-      <div>{members}</div>
-    </div>
+    <Card style={{ margin: '1vw', width: '15vw' }}>
+      <Card.Body>
+        <Card.Title>{title}</Card.Title>
+        <Card.Subtitle className='mb-2 text-muted'>{channelId}</Card.Subtitle>
+        <ListGroup variant='flush'>
+          {members.map((member, index) => (
+            <ListGroup.Item key={index}>
+              {member.user} -- {member.role}
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      </Card.Body>
+    </Card>
   )
 }
 

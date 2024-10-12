@@ -1,13 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createChannel } from '../../API/channels'
 import { useAuth } from '../../contexts/AuthContext'
+import {
+  Form,
+  Button,
+  InputGroup,
+  Card,
+  ListGroup,
+  Container,
+} from 'react-bootstrap'
 
 export function CreateChannel() {
-  const [formData, setFormData] = useState({
-    title: '',
-    members: [],
-  })
+  const [formData, setFormData] = useState({ title: '', members: [] })
   const [member, setMember] = useState({ user: '', role: 'guest' })
   const [token] = useAuth()
   const queryClient = useQueryClient()
@@ -15,25 +20,19 @@ export function CreateChannel() {
   const createChannelMutation = useMutation({
     mutationFn: () => {
       const { title, members } = formData
-      createChannel(token, { title, members })
+      return createChannel(token, { title, members })
     },
     onSuccess: () => queryClient.invalidateQueries(['channels']),
   })
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleMemberChange = (e) => {
     const { name, value } = e.target
-    setMember((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setMember((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleAddMember = () => {
@@ -58,76 +57,81 @@ export function CreateChannel() {
 
   useEffect(() => {
     if (createChannelMutation.isSuccess) {
-      setFormData({
-        title: '',
-        members: [],
-      })
+      setFormData({ title: '', members: [] })
     }
   }, [createChannelMutation.isSuccess])
 
-  //if (!token) return <div>Please log in to create new channel.</div>
-
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor='create-title'>Title: </label>
-        <input
-          type='text'
-          name='title'
-          id='create-title'
-          value={formData.title}
-          onChange={handleInputChange}
-        />
-      </div>
-      <br />
-
-      <label htmlFor='add-member'>Member: </label>
-      <div>
-        <h3>Members: </h3>
-        <input
-          type='text'
-          name='user'
-          value={member.user}
-          onChange={handleMemberChange}
-          placeholder='User'
-        />
-        <select
-          name='role'
-          value={member.role}
-          onChange={handleMemberChange}
-          style={{ marginRight: '10px' }}
-        >
-          <option value='admin'>Admin</option>
-          <option value='guest'>guest</option>
-        </select>
-
-        {formData.members.map((member, index) => (
-          <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-            <span>•</span>
-            {member.user} -- {member.role}
-            <button type='button' onClick={() => handleRemoveMember(index)}>
-              Remove
-            </button>
-          </div>
-        ))}
-
-        <button type='button' onClick={handleAddMember}>
-          Add Member
-        </button>
-      </div>
-
-      <br />
-      <input
-        type='submit'
-        value={createChannelMutation.isPending ? 'Creating...' : 'Create'}
-        disabled={!formData.title || createChannelMutation.isPending}
-      />
-      {createChannelMutation.isSuccess && (
-        <div>
-          <br />
-          channel created successfully!
-        </div>
-      )}
-    </form>
+    <Container>
+      <Form onSubmit={handleSubmit}>
+        <Card className='mb-4'>
+          <Card.Body>
+            <Form.Group>
+              <Form.Label htmlFor='create-title'>Title:</Form.Label>
+              <Form.Control
+                type='text'
+                name='title'
+                id='create-title'
+                value={formData.title}
+                onChange={handleInputChange}
+              />
+            </Form.Group>
+            <Form.Group className='mt-3'>
+              <Form.Label htmlFor='add-member'>Member:</Form.Label>
+              <InputGroup>
+                <Form.Control
+                  type='text'
+                  name='user'
+                  value={member.user}
+                  onChange={handleMemberChange}
+                  placeholder='User'
+                />
+                <Form.Select
+                  name='role'
+                  value={member.role}
+                  onChange={handleMemberChange}
+                >
+                  <option value='admin'>Admin</option>
+                  <option value='guest'>Guest</option>
+                </Form.Select>
+                <Button variant='outline-secondary' onClick={handleAddMember}>
+                  Add Member
+                </Button>
+              </InputGroup>
+              <ListGroup className='mt-3'>
+                {formData.members.map((member, index) => (
+                  <ListGroup.Item
+                    key={index}
+                    className='d-flex justify-content-between align-items-center'
+                  >
+                    {member.user} -- {member.role}
+                    <Button
+                      variant='outline-danger'
+                      size='sm'
+                      onClick={() => handleRemoveMember(index)}
+                    >
+                      Remove
+                    </Button>
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            </Form.Group>
+            <Button
+              type='submit'
+              variant='primary'
+              disabled={!formData.title || createChannelMutation.isPending}
+              className='mt-3'
+            >
+              {createChannelMutation.isPending ? 'Creating...' : 'Create'}
+            </Button>
+            {createChannelMutation.isSuccess && (
+              <div className='mt-3 text-success'>
+                Channel created successfully!
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      </Form>
+    </Container>
   )
 }
