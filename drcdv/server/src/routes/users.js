@@ -10,6 +10,7 @@ export function usersRoutes(app) {
   app.post('/api/v1/user/signup', async (req, res) => {
     try {
       const user = await createUser(req.body)
+
       return res.status(201).json({ username: user.username })
     } catch (err) {
       return res.status(400).json({
@@ -23,8 +24,6 @@ export function usersRoutes(app) {
     try {
       // define token based on req.body
       const token = await loginUser(req.body)
-      //return token
-      //console.log(`req body : ${JSON.stringify(req.body)}`) // Fatal
       return res.status(200).send({ token })
     } catch (err) {
       return res.status(400).send({

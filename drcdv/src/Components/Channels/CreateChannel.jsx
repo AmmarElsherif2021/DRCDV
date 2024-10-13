@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { createChannel } from '../../API/channels'
 import { useAuth } from '../../contexts/AuthContext'
 import {
@@ -9,7 +9,9 @@ import {
   Card,
   ListGroup,
   Container,
+  Dropdown,
 } from 'react-bootstrap'
+import { getUsers } from '../../API/users'
 
 export function CreateChannel() {
   const [formData, setFormData] = useState({ title: '', members: [] })
@@ -25,14 +27,18 @@ export function CreateChannel() {
     onSuccess: () => queryClient.invalidateQueries(['channels']),
   })
 
+  const connectionsQuery = useQuery({
+    queryKey: ['users', {}],
+    queryFn: () => getUsers({}),
+  })
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleMemberChange = (e) => {
-    const { name, value } = e.target
-    setMember((prev) => ({ ...prev, [name]: value }))
+  const handleMemberChange = (user) => {
+    setMember((prev) => ({ ...prev, user: user.username }))
   }
 
   const handleAddMember = () => {
@@ -61,6 +67,8 @@ export function CreateChannel() {
     }
   }, [createChannelMutation.isSuccess])
 
+  const connections = connectionsQuery.data ?? []
+
   return (
     <Container>
       <Form onSubmit={handleSubmit}>
@@ -79,17 +87,26 @@ export function CreateChannel() {
             <Form.Group className='mt-3'>
               <Form.Label htmlFor='add-member'>Member:</Form.Label>
               <InputGroup>
-                <Form.Control
-                  type='text'
-                  name='user'
-                  value={member.user}
-                  onChange={handleMemberChange}
-                  placeholder='User'
-                />
+                <Dropdown
+                  onSelect={(key) => handleMemberChange(connections[key])}
+                >
+                  <Dropdown.Toggle variant='outline-secondary'>
+                    {member.user || 'Select a user'}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {connections.map((user, index) => (
+                      <Dropdown.Item key={index} eventKey={index}>
+                        {user.username}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
                 <Form.Select
                   name='role'
                   value={member.role}
-                  onChange={handleMemberChange}
+                  onChange={(e) =>
+                    setMember((prev) => ({ ...prev, role: e.target.value }))
+                  }
                 >
                   <option value='admin'>Admin</option>
                   <option value='guest'>Guest</option>

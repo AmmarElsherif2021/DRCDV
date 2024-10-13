@@ -1,9 +1,14 @@
-// Get channels
+// Get channels where the user is a member
 export const listChannels = async (queryParams) => {
   try {
+    const queryString = new URLSearchParams(queryParams).toString()
     const res = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/channels?` +
-        new URLSearchParams(queryParams),
+      `${import.meta.env.VITE_BACKEND_URL}/channels?${queryString}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
     )
     if (!res.ok) {
       throw new Error(`Error fetching channels: ${res.statusText}`)

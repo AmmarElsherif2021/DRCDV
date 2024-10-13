@@ -1,7 +1,9 @@
 import { User } from '../Components/User/User'
-import { CreateChannel } from '../Components/channels/CreateChannel'
-import { ChannelCard } from '../Components/channels/ChannelCard'
+import { CreateChannel } from '../Components/Channels/CreateChannel'
+import { ChannelCard } from '../Components/Channels/ChannelCard'
+import { ConnectionsList } from './ConnectionsList'
 import { listChannels } from '../API/channels'
+import { getUsers } from '../API/users'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
@@ -22,17 +24,28 @@ export function ChannelsBoard() {
 
   const [token] = useAuth()
   const userData = decodeToken(token)
+
   const channelsQuery = useQuery({
-    queryKey: ['channels', {}],
-    queryFn: () => listChannels({}),
+    queryKey: ['channels', { userId: userData.userId }],
+    queryFn: () => listChannels({ userId: userData.userId }),
   })
+
+  const connectionsQuery = useQuery({
+    queryKey: ['users', {}],
+    queryFn: () => getUsers({}),
+  })
+
   const channels = channelsQuery.data ?? []
+  const connections = connectionsQuery.data ?? []
 
   return (
     <Container className='p-4 bg-light'>
       <Card className='mb-4'>
         <Card.Body>
-          <p className='h4 mb-3 font-weight-bold'>Personal Information</p>
+          <div className='h4 mb-3 font-weight-bold'>
+            Connections
+            <ConnectionsList users={connections} />
+          </div>
           <User id={userData?.userId} />
         </Card.Body>
       </Card>

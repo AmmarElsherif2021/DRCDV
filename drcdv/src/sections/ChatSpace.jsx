@@ -1,8 +1,8 @@
 //tanstack
 //import { useQuery } from '@tanstack/react-query'
 //import './App.css'
-//mport { MessageList } from '../Components/messages/MessageList.jsx'
-import { CreateMessage } from '../Components/messages/CreateMessage.jsx'
+//import { MessageList } from '../Components/messages/MessageList.jsx'
+import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 
 // //Api
 // import { getMessages } from '../API/messages.js'

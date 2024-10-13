@@ -10,12 +10,11 @@ import { Channel } from '../db/models/channel.js'
 /*
 name,    
 members: [{user}],
-messages: [{ message}],
+
 */
-export async function createChannel(userId, { name }) {
+export async function createChannel(userId, { title }) {
   const channel = new Channel({
-    name,
-    messages: [],
+    title,
     members: [{ user: userId, role: 'admin' }],
   })
   return await channel.save()
@@ -29,9 +28,36 @@ export async function listChannels(
   return await Channel.find(query).sort({ [sortBy]: sortOrder })
 }
 
-//Get Channel by id:
-export async function getChannelById(id) {
-  return Channel.findById(id)
+// Get Channel by id
+export async function getChannelById(channelId) {
+  try {
+    return await Channel.findById(channelId)
+  } catch (error) {
+    console.error('Error getting Channel by id:', error)
+    throw error
+  }
 }
 
-//Get Channel by author
+// Update Channel
+export async function updateChannel(userId, channelId, { text }) {
+  try {
+    return await Channel.findOneAndUpdate(
+      { _id: channelId, sender: userId },
+      { $set: { text } },
+      { new: true },
+    )
+  } catch (error) {
+    console.error('Error updating Channel:', error)
+    throw error
+  }
+}
+
+// Delete Channel
+export async function deleteChannel(userId, channelId) {
+  try {
+    return await Channel.deleteOne({ _id: channelId, sender: userId })
+  } catch (error) {
+    console.error('Error deleting Channel:', error)
+    throw error
+  }
+}

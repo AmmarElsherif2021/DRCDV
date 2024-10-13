@@ -5,10 +5,11 @@ import { signup } from '../API/users'
 
 export function Signup() {
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
   const signupMutation = useMutation({
-    mutationFn: () => signup({ username, password }),
+    mutationFn: () => signup({ username, email, password }),
     onSuccess: () => navigate('/login'),
     onError: () => alert('failed to sign up!'),
   })
@@ -29,6 +30,17 @@ export function Signup() {
           id='create-username'
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+        />
+      </div>
+      <br />
+      <div>
+        <label htmlFor='create-email'>Email: </label>
+        <input
+          type='text'
+          name='create-email'
+          id='create-email'
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </div>
       <br />
