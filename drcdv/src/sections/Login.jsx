@@ -9,6 +9,7 @@ export function Login() {
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
   const [, setToken] = useAuth()
+
   const loginMutation = useMutation({
     mutationFn: () => login({ username, password }),
     onSuccess: (data) => {
@@ -17,10 +18,12 @@ export function Login() {
     },
     onError: () => alert('failed to log in!'),
   })
+
   const handleSubmit = (e) => {
     e.preventDefault()
     loginMutation.mutate()
   }
+
   return (
     <form onSubmit={handleSubmit}>
       <Link to='/'>Back to main page</Link>

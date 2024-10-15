@@ -1,14 +1,15 @@
 export const signup = async ({ username, email, password }) => {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
+  const res = await fetch('http://localhost:3001/api/v1/user/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, email, password }),
   })
-  if (!res.ok) throw new Error('!!!failed to sign up')
+  if (!res.ok) throw new Error('failed to sign up')
   return await res.json()
 }
+
 export const login = async ({ username, password }) => {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/login`, {
+  const res = await fetch('http://localhost:3001/api/v1/user/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),

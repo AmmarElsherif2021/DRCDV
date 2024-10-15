@@ -12,35 +12,46 @@ import {
   Dropdown,
 } from 'react-bootstrap'
 import { getUsers } from '../../API/users'
+//import { jwtDecode } from 'jwt-decode'
 
 export function CreateChannel() {
-  const [formData, setFormData] = useState({ title: '', members: [] })
-  const [member, setMember] = useState({ user: '', role: 'guest' })
   const [token] = useAuth()
+  const [formData, setFormData] = useState({
+    title: '',
+    members: [],
+  })
+  const [member, setMember] = useState({ user: '', role: 'guest' })
   const queryClient = useQueryClient()
 
   const createChannelMutation = useMutation({
     mutationFn: () => {
       const { title, members } = formData
+      //const admin = { user: jwtDecode(token).sub, role: 'admin' }
+
+      console.log('Form Data Sent:', { title, members }) // Debugging
       return createChannel(token, { title, members })
     },
     onSuccess: () => queryClient.invalidateQueries(['channels']),
   })
 
+  // Query to fetch connections
   const connectionsQuery = useQuery({
     queryKey: ['users', {}],
     queryFn: () => getUsers({}),
   })
 
+  // Handle input change for title
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  // Handle member selection from dropdown
   const handleMemberChange = (user) => {
-    setMember((prev) => ({ ...prev, user: user.username }))
+    setMember((prev) => ({ ...prev, user: user._id }))
   }
 
+  // Add member to the form data
   const handleAddMember = () => {
     setFormData((prev) => ({
       ...prev,
@@ -49,6 +60,7 @@ export function CreateChannel() {
     setMember({ user: '', role: 'guest' })
   }
 
+  // Remove member from the form data
   const handleRemoveMember = (index) => {
     setFormData((prev) => ({
       ...prev,
@@ -56,11 +68,13 @@ export function CreateChannel() {
     }))
   }
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
     createChannelMutation.mutate()
   }
 
+  // Reset form data on successful mutation
   useEffect(() => {
     if (createChannelMutation.isSuccess) {
       setFormData({ title: '', members: [] })

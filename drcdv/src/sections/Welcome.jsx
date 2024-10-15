@@ -1,29 +1,26 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useNavigate, Link } from 'react-router-dom'
-import { signup } from '../API/users'
+import { login } from '../API/users'
+import { useAuth } from '../contexts/AuthContext'
 
-export function Signup() {
+export function Welcome() {
   const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
-
-  const signupMutation = useMutation({
-    mutationFn: () => signup({ username, email, password }),
-    onSuccess: (user) => {
-      queryClient.invalidateQueries(['channels'])
-      navigate('/login', { state: { token: user.token } })
+  const [, setToken] = useAuth()
+  const loginMutation = useMutation({
+    mutationFn: () => login({ username, password }),
+    onSuccess: (data) => {
+      setToken(data.token)
+      navigate('/')
     },
-    onError: () => alert('Failed to sign up!'),
+    onError: () => alert('failed to log in!'),
   })
-
   const handleSubmit = (e) => {
     e.preventDefault()
-    signupMutation.mutate()
+    loginMutation.mutate()
   }
-
   return (
     <form onSubmit={handleSubmit}>
       <Link to='/'>Back to main page</Link>
@@ -41,17 +38,6 @@ export function Signup() {
       </div>
       <br />
       <div>
-        <label htmlFor='create-email'>Email: </label>
-        <input
-          type='email' // Ensure the input type is 'email' for validation
-          name='create-email'
-          id='create-email'
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <br />
-      <div>
         <label htmlFor='create-password'>Password: </label>
         <input
           type='password'
@@ -64,8 +50,8 @@ export function Signup() {
       <br />
       <input
         type='submit'
-        value={signupMutation.isPending ? 'Signing up...' : 'Sign Up'}
-        disabled={!username || !password || signupMutation.isPending}
+        value={loginMutation.isPending ? 'Loging in...' : 'Log in '}
+        disabled={!username || !password || loginMutation.isPending}
       />
     </form>
   )

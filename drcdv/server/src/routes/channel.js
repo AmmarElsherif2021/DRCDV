@@ -2,21 +2,19 @@ import { requireAuth } from '../middleware/jwt.js'
 import {
   createChannel,
   listChannels,
-  updateChannel,
+  addMemberToChannel,
   getChannelById,
-  deleteChannel,
+  checkChannelExists,
 } from '../services/channels.js'
 
-// List channels where the user is a member
 export function channelsRoutes(app) {
+  // List channels where the user is a member
   app.get('/api/v1/channels', async (req, res) => {
     const { userId, sortBy, sortOrder } = req.query
     const options = { sortBy, sortOrder }
-
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' })
     }
-
     try {
       const channels = await listChannels({ 'members.user': userId }, options)
       return res.json(channels)
@@ -38,6 +36,7 @@ export function channelsRoutes(app) {
   })
 
   // Find specific channel route
+
   app.get('/api/v1/channels/:cid', requireAuth, async (req, res) => {
     const { cid } = req.params
     try {
@@ -57,29 +56,30 @@ export function channelsRoutes(app) {
     }
   })
 
-  // Update specific channel route
-  app.patch('/api/v1/channels/:cid', requireAuth, async (req, res) => {
+  // Add member to channel route
+  app.post('/api/v1/channels/:cid/members', requireAuth, async (req, res) => {
     const { cid } = req.params
+    const newMember = req.body.newMember
     try {
-      const channel = await updateChannel(cid, req.auth.sub, req.body)
-      if (!channel) return res.status(404).json({ error: 'Channel not found' })
-      return res.json(channel)
+      const channel = await addMemberToChannel(req.auth.sub, cid, newMember)
+      return res.status(200).json(channel)
     } catch (err) {
-      console.error('Error updating channel:', err)
+      console.error('Error adding member to channel:', err)
       return res.status(500).json({ error: 'Internal server error' })
     }
   })
 
-  // Delete specific channel route
-  app.delete('/api/v1/channels/:cid', requireAuth, async (req, res) => {
-    const { cid } = req.params
+  // Check if channel exists
+  app.get('/api/v1/channels/check', async (req, res) => {
+    const { userId1, userId2 } = req.query
+    if (!userId1 || !userId2) {
+      return res.status(400).json({ error: 'User IDs are required' })
+    }
     try {
-      const result = await deleteChannel(cid, req.auth.sub)
-      if (result.deletedCount === 0)
-        return res.status(404).json({ error: 'Channel not found' })
-      return res.status(204).end()
+      const channelId = await checkChannelExists(userId1, userId2)
+      return res.json({ exists: !!channelId, channelId })
     } catch (err) {
-      console.error('Error deleting channel:', err)
+      console.error('Error checking channel:', err)
       return res.status(500).json({ error: 'Internal server error' })
     }
   })
