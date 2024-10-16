@@ -1,17 +1,7 @@
 import { Channel } from '../db/models/channel.js'
+import { Message } from '../db/models/message.js'
+import { User } from '../db/models/user.js' // Ensure the user model is imported
 
-/*
-- add users to channel
-- remove users from channel
-- Terminate channel
-*  userId referes here to admin user, admin is the user who initiate messaging space with one or many users
- */
-
-/*
-name,    
-members: [{user}],
-
-*/
 export async function createChannel(userId, channelData) {
   try {
     const newChannel = new Channel({
@@ -26,7 +16,6 @@ export async function createChannel(userId, channelData) {
   }
 }
 
-//list Channels
 export async function listChannels(
   query = {},
   { sortBy = 'createdAt', sortOrder = 'descending' },
@@ -34,25 +23,22 @@ export async function listChannels(
   return await Channel.find(query).sort({ [sortBy]: sortOrder })
 }
 
-// Get Channel by id
 export async function getChannelById(channelId) {
   try {
     return await Channel.findById(channelId)
   } catch (error) {
-    console.error('Error getting Channel by id:', error)
+    console.error('Error getting channel by id:', error)
     throw error
   }
 }
-//Add member
+
 export async function addMemberToChannel(userId, channelId, newMember) {
   try {
     const channel = await Channel.findById(channelId)
     if (!channel) throw new Error('Channel not found')
-
     let userIsMember = channel.members.some(
       (member) => member.user.toString() === userId,
     )
-
     if (!userIsMember) {
       channel.members.push({ user: userId, role: 'admin' })
     } else {
@@ -62,7 +48,6 @@ export async function addMemberToChannel(userId, channelId, newMember) {
           : member,
       )
     }
-
     channel.members.push(newMember)
     await channel.save()
     return channel
@@ -72,7 +57,6 @@ export async function addMemberToChannel(userId, channelId, newMember) {
   }
 }
 
-// Remove specified members from the channel
 export async function removeMembersFromChannel(
   userId,
   channelId,
@@ -81,12 +65,9 @@ export async function removeMembersFromChannel(
   try {
     const channel = await Channel.findById(channelId)
     if (!channel) throw new Error('Channel not found')
-
-    // Remove specified members from the channel
     channel.members = channel.members.filter(
       (member) => !membersToRemove.includes(member.user.toString()),
     )
-
     await channel.save()
     return channel
   } catch (error) {
@@ -95,22 +76,20 @@ export async function removeMembersFromChannel(
   }
 }
 
-// Delete Channel
 export async function deleteChannel(userId, channelId) {
   try {
     return await Channel.deleteOne({ _id: channelId, sender: userId })
   } catch (error) {
-    console.error('Error deleting Channel:', error)
+    console.error('Error deleting channel:', error)
     throw error
   }
 }
 
-// Check if Channel Exists
 export async function checkChannelExists(userId1, userId2) {
   try {
     const channel = await Channel.findOne({
       members: {
-        $size: 2, // Ensure only two members in the channel
+        $size: 2,
         $all: [
           { $elemMatch: { user: userId1 } },
           { $elemMatch: { user: userId2 } },
@@ -120,6 +99,38 @@ export async function checkChannelExists(userId1, userId2) {
     return channel ? channel._id : null
   } catch (error) {
     console.error('Error checking channel:', error)
+    throw error
+  }
+}
+
+export async function updateChannelMessages(channelId, message) {
+  try {
+    const channel = await Channel.findById(channelId)
+    if (!channel) throw new Error('Channel not found')
+    channel.messages.push(message)
+    await channel.save()
+    return channel
+  } catch (error) {
+    console.error('Error updating channel messages:', error)
+    throw error
+  }
+}
+
+// Function to retrieve message texts from the channel
+export async function getChannelMessages(channelId) {
+  try {
+    const channel = await Channel.findById(channelId).populate({
+      path: 'messages',
+      populate: { path: 'sender', model: 'User', select: 'username' }, // Ensure model name matches the User model definition
+    })
+    if (!channel) throw new Error('Channel not found')
+    return channel.messages.map((message) => ({
+      text: message.text,
+      sender: message.sender.username,
+      createdAt: message.createdAt,
+    }))
+  } catch (error) {
+    console.error('Error retrieving channel messages:', error)
     throw error
   }
 }

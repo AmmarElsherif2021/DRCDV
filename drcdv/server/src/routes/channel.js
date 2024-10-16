@@ -5,6 +5,7 @@ import {
   addMemberToChannel,
   getChannelById,
   checkChannelExists,
+  getChannelMessages,
 } from '../services/channels.js'
 
 export function channelsRoutes(app) {
@@ -36,7 +37,6 @@ export function channelsRoutes(app) {
   })
 
   // Find specific channel route
-
   app.get('/api/v1/channels/:cid', requireAuth, async (req, res) => {
     const { cid } = req.params
     try {
@@ -80,6 +80,18 @@ export function channelsRoutes(app) {
       return res.json({ exists: !!channelId, channelId })
     } catch (err) {
       console.error('Error checking channel:', err)
+      return res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // Get messages in a channel
+  app.get('/api/v1/channels/:cid/messages', requireAuth, async (req, res) => {
+    const { cid } = req.params
+    try {
+      const messages = await getChannelMessages(cid)
+      return res.json(messages)
+    } catch (err) {
+      console.error('Error getting channel messages:', err)
       return res.status(500).json({ error: 'Internal server error' })
     }
   })

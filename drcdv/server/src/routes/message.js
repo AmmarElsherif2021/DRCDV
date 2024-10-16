@@ -6,6 +6,7 @@ import {
   updateMessage,
   deleteMessage,
 } from '../services/messages.js'
+import { getMessagesByChannelId } from '../services/messages.js'
 
 // List messages route
 export function messagesRoutes(app) {
@@ -80,6 +81,19 @@ export function messagesRoutes(app) {
     } catch (err) {
       console.error('error deleting message', err)
       return res.status(500).json({ error: 'Error deleting message' })
+    }
+  })
+
+  //get by cid
+  app.get('/api/v1/channels/:cid/messages', async (req, res) => {
+    const { sortBy, sortOrder } = req.query
+    const options = { sortBy, sortOrder }
+    try {
+      const messages = await getMessagesByChannelId(req.params.cid, options)
+      return res.json(messages)
+    } catch (err) {
+      console.error('Error listing messages:', err)
+      return res.status(500).json({ error: 'Error listing messages' })
     }
   })
 }

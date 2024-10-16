@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Container, Row, Col, ListGroup, Stack } from 'react-bootstrap'
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
+import { getMessagesByChannelId } from '../API/messages.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useSocket } from '../contexts/SocketContext.jsx'
 import { User } from '../Components/User/User.jsx'
@@ -22,7 +23,7 @@ export function ChatSpace({ channelId }) {
     try {
       const decoded = jwtDecode(token)
       const userId = decoded.sub
-      const username = decoded.username // Assume the token has the username
+      const username = decoded.username
       return { userId, username }
     } catch (error) {
       console.error('Invalid token:', error)
@@ -33,7 +34,6 @@ export function ChatSpace({ channelId }) {
   const userData = decodeToken(token)
   const [channelMessages, setChannelMessages] = useState([])
   const [channelMembers, setChannelMembers] = useState([])
-
   const { data: channelData } = useQuery({
     queryKey: ['channel', { channelId }],
     queryFn: () => getChannelById(channelId, token),
@@ -43,8 +43,17 @@ export function ChatSpace({ channelId }) {
   const listRef = useRef(null)
 
   useEffect(() => {
-    if (channelData && channelData.messages) {
-      setChannelMessages(channelData.messages)
+    if (channelData) {
+      console.log(JSON.stringify(channelData))
+      // Fetch channel messages
+      getMessagesByChannelId(channelId, token)
+        .then((messages) => {
+          setChannelMessages(messages)
+          messages.forEach((m) =>
+            console.log(`historical message --- ${JSON.stringify(m)}`),
+          )
+        })
+        .catch((error) => console.error('Error fetching messages:', error))
     }
     if (channelData && channelData.members) {
       setChannelMembers(channelData.members)
@@ -52,8 +61,7 @@ export function ChatSpace({ channelId }) {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
-  }, [channelData])
-
+  }, [channelData, channelId, token])
   useEffect(() => {
     if (socket) {
       socket.on('messageCreated', (msg) => {
@@ -78,7 +86,6 @@ export function ChatSpace({ channelId }) {
       })
     }
   }
-
   return (
     <>
       {token && channelData ? (
@@ -91,7 +98,8 @@ export function ChatSpace({ channelId }) {
                     id={
                       channelData.title
                         .split(',')
-                        .filter((x) => x !== userData.userId)[0]
+                        .filter((x) => x !== userData.userId)[0] ||
+                      userData.userId
                     }
                   />
                 )}
@@ -121,7 +129,7 @@ export function ChatSpace({ channelId }) {
                             }}
                           >
                             <img src={userAvatar} style={{ width: '3rem' }} />
-                            <User id={member.user} />
+                            <User id={member.user || userData.userId} />
                           </div>
                         </ListGroup.Item>
                       ),

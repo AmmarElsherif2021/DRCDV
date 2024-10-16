@@ -35,7 +35,7 @@ export async function createMessage(userId, channelId, { text, attachments }) {
 // Get Message by id
 export async function getMessageById(messageId) {
   try {
-    return await Message.findById(messageId)
+    return await Message.findById(messageId).populate('sender', 'username')
   } catch (error) {
     console.error('Error getting message by id:', error)
     throw error
@@ -66,7 +66,6 @@ export async function deleteMessage(userId, messageId) {
   }
 }
 
-// List Messages from the database
 async function listMessages(
   query = {},
   { sortBy = 'createdAt', sortOrder = 'descending' } = {},
@@ -75,6 +74,16 @@ async function listMessages(
     return await Message.find(query).sort({ [sortBy]: sortOrder })
   } catch (error) {
     console.error('Error listing messages:', error)
+    throw error
+  }
+}
+
+// List All Messages for a Channel
+export async function getMessagesByChannelId(channelId, options = {}) {
+  try {
+    return await listMessages({ channel: channelId }, options)
+  } catch (error) {
+    console.error('Error getting messages by channel ID:', error)
     throw error
   }
 }
