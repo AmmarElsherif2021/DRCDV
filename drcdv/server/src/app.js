@@ -5,9 +5,15 @@ import bodyParser from 'body-parser'
 import { usersRoutes } from './routes/users.js'
 import { messagesRoutes } from './routes/message.js'
 import { channelsRoutes } from './routes/channel.js'
-const app = express() // Create an instance of an Express application
 
-app.use(cors()) // Enable CORS for all routes
+const app = express() // Create an instance of an Express application
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+
+app.use(cors(corsOptions))
 app.use(bodyParser.json()) // Use body-parser to parse JSON request bodies
 
 usersRoutes(app) //Register users routes with express application

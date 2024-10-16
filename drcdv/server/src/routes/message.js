@@ -13,10 +13,11 @@ export function messagesRoutes(app) {
     const { sortBy, sortOrder } = req.query
     const options = { sortBy, sortOrder }
     try {
-      return res.json(await listAllMessages(req.params.cid, options))
+      const messages = await listAllMessages(req.params.cid, options)
+      return res.json(messages)
     } catch (err) {
       console.error('error listing messages', err)
-      return res.status(500).end()
+      return res.status(500).json({ error: 'Error listing messages' })
     }
   })
 
@@ -25,11 +26,11 @@ export function messagesRoutes(app) {
     const { id, cid } = req.params
     try {
       const message = await getMessageById(cid, id)
-      if (message === null) return res.status(404).end()
+      if (!message) return res.status(404).json({ error: 'Message not found' })
       return res.json(message)
     } catch (err) {
       console.error('error getting message', err)
-      return res.status(500).end()
+      return res.status(500).json({ error: 'Error getting message' })
     }
   })
 
@@ -41,10 +42,10 @@ export function messagesRoutes(app) {
         req.auth.sub,
         req.body,
       )
-      return res.json(message)
+      return res.status(201).json(message)
     } catch (err) {
       console.error('error creating message', err)
-      return res.status(500).end()
+      return res.status(500).json({ error: 'Error creating message' })
     }
   })
 
@@ -57,10 +58,11 @@ export function messagesRoutes(app) {
         req.params.id,
         req.body,
       )
+      if (!message) return res.status(404).json({ error: 'Message not found' })
       return res.json(message)
     } catch (err) {
       console.error('error updating message', err)
-      return res.status(500).end()
+      return res.status(500).json({ error: 'Error updating message' })
     }
   })
 
@@ -72,11 +74,12 @@ export function messagesRoutes(app) {
         req.auth.sub,
         req.params.id,
       )
-      if (deletedCount === 0) return res.sendStatus(404)
+      if (deletedCount === 0)
+        return res.status(404).json({ error: 'Message not found' })
       return res.status(204).end()
     } catch (err) {
       console.error('error deleting message', err)
-      return res.status(500).end()
+      return res.status(500).json({ error: 'Error deleting message' })
     }
   })
 }

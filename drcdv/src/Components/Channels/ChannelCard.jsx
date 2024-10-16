@@ -28,9 +28,9 @@ export function ChannelCard({ channelId, title, members, onChannelClick }) {
       style={{
         margin: '1rem',
         maxWidth: '20rem',
-        border: '1px solid #ddd',
+        //border: '1px solid #ddd',
         borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+
         cursor: 'pointer',
       }}
       index={channelId}

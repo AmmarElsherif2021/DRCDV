@@ -1,20 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Container, Row, Col, ListGroup, Stack } from 'react-bootstrap'
-//import io from 'socket.io-client'
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { useSocket } from '../contexts/SocketContext.jsx'
 import { User } from '../Components/User/User.jsx'
 import userAvatar from '../assets/profile.svg'
 import { jwtDecode } from 'jwt-decode'
 
-// Connect to Socket.IO server
-//const socket = io('http://localhost:3001')
-
 // eslint-disable-next-line react/prop-types
 export function ChatSpace({ channelId }) {
   const [token] = useAuth()
+  const socket = useSocket()
 
   const decodeToken = (token) => {
     if (!token || typeof token !== 'string') {
@@ -23,8 +21,9 @@ export function ChatSpace({ channelId }) {
     }
     try {
       const decoded = jwtDecode(token)
-      const userId = decoded.sub // Extracting 'sub' for user ID
-      return { userId }
+      const userId = decoded.sub
+      const username = decoded.username // Assume the token has the username
+      return { userId, username }
     } catch (error) {
       console.error('Invalid token:', error)
       return null
@@ -35,45 +34,50 @@ export function ChatSpace({ channelId }) {
   const [channelMessages, setChannelMessages] = useState([])
   const [channelMembers, setChannelMembers] = useState([])
 
-  // Fetch messages when channelId changes
   const { data: channelData } = useQuery({
     queryKey: ['channel', { channelId }],
     queryFn: () => getChannelById(channelId, token),
     enabled: !!channelId,
   })
 
-  // useRef to messages list
   const listRef = useRef(null)
 
   useEffect(() => {
     if (channelData && channelData.messages) {
       setChannelMessages(channelData.messages)
     }
-    // update members
     if (channelData && channelData.members) {
       setChannelMembers(channelData.members)
     }
-    // scroll to the last message added
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
   }, [channelData])
 
-  // useEffect(() => {
-  //   socket.on('message', (msg) => {
-  //     setChannelMessages((prevMessages) => [...prevMessages, msg])
-  //     if (listRef.current) {
-  //       listRef.current.scrollTop = listRef.current.scrollHeight
-  //     }
-  //   })
-  //   return () => {
-  //     socket.off('message')
-  //   }
-  // }, [])
+  useEffect(() => {
+    if (socket) {
+      socket.on('messageCreated', (msg) => {
+        setChannelMessages((prevMessages) => [...prevMessages, msg])
+        if (listRef.current) {
+          listRef.current.scrollTop = listRef.current.scrollHeight
+        }
+      })
 
-  // const sendMessage = (msg) => {
-  //   socket.emit('message', msg)
-  // }
+      return () => {
+        socket.off('messageCreated')
+      }
+    }
+  }, [socket])
+
+  const sendMessage = (msg) => {
+    if (socket) {
+      socket.emit('createMessage', {
+        userId: userData.userId,
+        channelId,
+        messageData: { text: msg, attachments: [] },
+      })
+    }
+  }
 
   return (
     <>
@@ -135,13 +139,38 @@ export function ChatSpace({ channelId }) {
                 {channelMessages.map((message, index) => (
                   <ListGroup.Item
                     key={index}
-                    className={`d-flex justify-content-${message.user === 'User 1' ? 'start' : 'end'}`}
+                    className={`d-flex justify-content-${
+                      message.sender === userData.userId ? 'end' : 'start'
+                    }`}
                   >
                     <Stack
                       direction='horizontal'
-                      className={`bg-${message.user === 'User 1' ? 'primary' : 'secondary'} text-white rounded p-2`}
+                      style={
+                        message.sender === userData.userId
+                          ? {
+                              backgroundColor: '#007bff',
+                              color: 'white',
+                              borderRadius: '15px',
+                              padding: '10px',
+                              alignSelf: 'flex-end',
+                            }
+                          : {
+                              backgroundColor: '#6c757d',
+                              color: 'white',
+                              borderRadius: '15px',
+                              padding: '10px',
+                              alignSelf: 'flex-start',
+                            }
+                      }
                     >
-                      <strong>{message.user}: </strong>
+                      {message.sender === userData.userId ? (
+                        <strong>Me</strong>
+                      ) : (
+                        <div>
+                          <User id={message.sender} />
+                        </div>
+                      )}
+                      :{'  '}
                       {message.text}
                     </Stack>
                   </ListGroup.Item>
@@ -149,10 +178,7 @@ export function ChatSpace({ channelId }) {
               </ListGroup>
             </Col>
           </Row>
-          <CreateMessage
-            channelId={channelId}
-            sendMessage={() => console.log('send message placeholder')}
-          />
+          <CreateMessage channelId={channelId} sendMessage={sendMessage} />
         </Container>
       ) : (
         <div style={{ padding: '7rem' }}>

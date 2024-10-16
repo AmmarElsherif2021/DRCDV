@@ -28,7 +28,7 @@ export function CreateChannel() {
       const { title, members } = formData
       //const admin = { user: jwtDecode(token).sub, role: 'admin' }
 
-      console.log('Form Data Sent:', { title, members }) // Debugging
+      //console.log('Form Data Sent:', { title, members }) // Debugging
       return createChannel(token, { title, members })
     },
     onSuccess: () => queryClient.invalidateQueries(['channels']),

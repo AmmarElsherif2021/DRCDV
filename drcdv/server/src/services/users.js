@@ -29,6 +29,7 @@ export async function loginUser({ username, password }) {
   }
 
   //create json token: subject - jwt secret - expiration time
+  // eslint-disable-next-line no-undef
   const token = jwt.sign({ sub: user._id }, process.env.JWT_SECRET, {
     expiresIn: '24h',
   })

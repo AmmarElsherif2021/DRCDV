@@ -1,19 +1,47 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createMessage } from '../../API/messages'
-import { useAuth } from '../../contexts/AuthContext'
 import { Form, Button, Container, Alert } from 'react-bootstrap'
+import { useAuth } from '../../contexts/AuthContext'
+import { useSocket } from '../../contexts/SocketContext'
+import { jwtDecode } from 'jwt-decode'
 
-export function CreateMessage() {
+// eslint-disable-next-line react/prop-types
+export function CreateMessage({ channelId }) {
+  // Pass channelId as prop
   const [text, setText] = useState('') // State for the message text
   const [attachments, setAttachments] = useState([]) // State for the message attachments
   const [token] = useAuth() // Fetch token from AuthContext
+  const socket = useSocket() // Get the socket instance
 
   const queryClient = useQueryClient() // Initialize the query client
 
+  const decodeToken = (token) => {
+    if (!token || typeof token !== 'string') {
+      console.error('Invalid token:', 'Token must be a valid string')
+      return null
+    }
+    try {
+      const decoded = jwtDecode(token)
+      return decoded.sub // Return user ID
+    } catch (error) {
+      console.error('Invalid token:', error)
+      return null
+    }
+  }
+
+  const userId = decodeToken(token)
+
   const createMessageMutation = useMutation({
-    mutationFn: () => createMessage(token, { text, attachments }), // Function to call the createMessage API
-    onSuccess: () => queryClient.invalidateQueries(['messages']), // Invalidate the 'messages' query on success to refetch the messages
+    mutationFn: () => {
+      if (socket && userId) {
+        socket.emit('createMessage', {
+          userId,
+          channelId,
+          messageData: { text, attachments },
+        })
+      }
+    }, // Emit createMessage event through socket
+    onSuccess: () => queryClient.invalidateQueries(['messages', channelId]), // Invalidate the 'messages' query on success to refetch the messages
   })
 
   const handleSubmit = (e) => {
@@ -41,7 +69,6 @@ export function CreateMessage() {
             onChange={(e) => setText(e.target.value)} // Update the text state on input change
           />
         </Form.Group>
-
         <Form.Group controlId='create-attachments' className='mt-3'>
           <Form.Label>Attachments:</Form.Label>
           <Form.Control
@@ -50,7 +77,6 @@ export function CreateMessage() {
             onChange={handleAttachmentChange} // Update the attachments state on file input change
           />
         </Form.Group>
-
         <Button
           type='submit'
           variant='primary'
@@ -60,7 +86,6 @@ export function CreateMessage() {
           {createMessageMutation.isPending ? 'Creating...' : 'Create'}{' '}
           {/* Change button text based on mutation state */}
         </Button>
-
         {createMessageMutation.isSuccess && (
           <Alert variant='success' className='mt-3'>
             Message created successfully!

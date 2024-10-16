@@ -9,7 +9,7 @@ import './index.css'
 //import { Welcome } from './sections/Welcome.jsx'
 import { UserHomeProvider } from './contexts/UserHomeContext.jsx'
 import { ChannelProvider } from './contexts/ChannelContext.jsx'
-
+import { SocketProvider } from './contexts/SocketContext.jsx'
 const queryClient = new QueryClient()
 
 const router = createBrowserRouter([
@@ -38,7 +38,9 @@ export default function App() {
       <AuthContextProvider>
         <UserHomeProvider>
           <ChannelProvider>
-            <RouterProvider router={router} />
+            <SocketProvider>
+              <RouterProvider router={router} />
+            </SocketProvider>
           </ChannelProvider>
         </UserHomeProvider>
       </AuthContextProvider>
