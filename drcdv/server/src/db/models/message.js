@@ -1,6 +1,5 @@
-/* eslint-disable no-undef */
 import mongoose, { Schema } from 'mongoose'
-
+import { Buffer } from 'buffer'
 const attachmentSchema = new Schema({
   filename: { type: String },
   contentType: { type: String },

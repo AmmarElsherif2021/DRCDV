@@ -2,17 +2,16 @@ import { Message } from '../db/models/message.js'
 import { User } from '../db/models/user.js'
 import { Buffer } from 'buffer'
 // Create Message
-export async function createMessage(userId, channelId, { text, attachments }) {
+// Create Message with Binary Data
+export async function createMessage(
+  userId,
+  channelId,
+  { text, attachments = [] },
+) {
   try {
-    const formattedAttachments = attachments.map((att) => ({
-      filename: att.filename,
-      contentType: att.contentType,
-      data: att.data,
-    }))
-
     const message = new Message({
       text,
-      attachments: formattedAttachments,
+      attachments,
       sender: userId,
       channel: channelId,
     })
@@ -28,15 +27,10 @@ export async function getMessagesByChannelId(channelId, options = {}) {
     const messages = await listMessages({ channel: channelId }, options)
     const formattedMessages = messages.map((message) => ({
       ...message._doc,
-      attachments: message.attachments.map((att) => {
-        if (att.data && typeof att.data !== 'string') {
-          return {
-            ...att._doc,
-            data: Buffer.from(att.data).toString('base64'), // Ensure data is properly converted
-          }
-        }
-        return att
-      }),
+      attachments: message.attachments.map((att) => ({
+        ...att._doc,
+        data: att.data ? Buffer.from(att.data).toString('base64') : '', // Ensure encoding to base64
+      })),
     }))
     return formattedMessages
   } catch (error) {

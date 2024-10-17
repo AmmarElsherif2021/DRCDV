@@ -180,35 +180,40 @@ export function ChatSpace({ channelId }) {
                       {Array.isArray(message.attachments) &&
                         message.attachments.length > 0 && (
                           <div style={{ marginTop: '10px' }}>
-                            {message.attachments.map((attachment, i) => (
-                              <div key={i} style={{ marginTop: '5px' }}>
-                                {attachment &&
-                                attachment.contentType &&
-                                attachment.data &&
-                                attachment.contentType.startsWith('image/') ? (
-                                  <img
-                                    src={`data:${attachment.contentType};base64,${attachment.data}`}
-                                    alt={attachment.filename}
-                                    style={{
-                                      maxWidth: '200px',
-                                      maxHeight: '200px',
-                                      display: 'block',
-                                    }}
-                                  />
-                                ) : (
-                                  attachment &&
+                            {message.attachments.map((attachment, i) => {
+                              console.log('Attachment:', attachment) // Log attachment data for debugging
+                              return (
+                                <div key={i} style={{ marginTop: '5px' }}>
+                                  {attachment &&
                                   attachment.contentType &&
-                                  attachment.data && (
-                                    <a
-                                      href={`data:${attachment.contentType};base64,${attachment.data}`}
-                                      download={attachment.filename}
-                                    >
-                                      {attachment.filename}
-                                    </a>
-                                  )
-                                )}
-                              </div>
-                            ))}
+                                  attachment.data &&
+                                  attachment.contentType.startsWith(
+                                    'image/',
+                                  ) ? (
+                                    <img
+                                      src={`data:${attachment.contentType};base64,${attachment.data}`}
+                                      alt={attachment.filename}
+                                      style={{
+                                        maxWidth: '200px',
+                                        maxHeight: '200px',
+                                        display: 'block',
+                                      }}
+                                    />
+                                  ) : (
+                                    attachment &&
+                                    attachment.contentType &&
+                                    attachment.data && (
+                                      <a
+                                        href={`data:${attachment.contentType};base64,${attachment.data}`}
+                                        download={attachment.filename}
+                                      >
+                                        {attachment.filename}
+                                      </a>
+                                    )
+                                  )}
+                                </div>
+                              )
+                            })}
                           </div>
                         )}
                     </Stack>

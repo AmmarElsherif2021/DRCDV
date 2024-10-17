@@ -12,13 +12,14 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSocket } from '../../contexts/SocketContext'
 import { jwtDecode } from 'jwt-decode'
 
+// eslint-disable-next-line react/prop-types
 export function CreateMessage({ channelId }) {
-  const [text, setText] = useState('') // State for the message text
-  const [attachments, setAttachments] = useState([]) // State for the message attachments
-  const [showAlert, setShowAlert] = useState(false) // State to control the alert visibility
-  const [token] = useAuth() // Fetch token from AuthContext
-  const socket = useSocket() // Get the socket instance
-  const queryClient = useQueryClient() // Initialize the query client
+  const [text, setText] = useState('')
+  const [attachments, setAttachments] = useState([])
+  const [showAlert, setShowAlert] = useState(false)
+  const [token] = useAuth()
+  const socket = useSocket()
+  const queryClient = useQueryClient()
 
   const decodeToken = (token) => {
     if (!token || typeof token !== 'string') {
@@ -45,9 +46,9 @@ export function CreateMessage({ channelId }) {
           messageData: { text, attachments },
         })
       }
-    }, // Emit createMessage event through socket
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['messages', channelId]) // Invalidate the 'messages' query on success to refetch the messages
+      queryClient.invalidateQueries(['messages', channelId])
       setText('') // Reset text input
       setAttachments([]) // Reset attachments
       setShowAlert(true) // Show success alert
@@ -60,10 +61,9 @@ export function CreateMessage({ channelId }) {
   })
 
   const handleSubmit = (e) => {
-    e.preventDefault() // Prevent the default form submission behavior
-    createMessageMutation.mutate() // Trigger the mutation to create a message
+    e.preventDefault()
+    createMessageMutation.mutate()
   }
-
   const handleAttachmentChange = (e) => {
     const files = Array.from(e.target.files)
     const filePromises = files.map((file) => {
@@ -73,11 +73,11 @@ export function CreateMessage({ channelId }) {
           resolve({
             filename: file.name,
             contentType: file.type,
-            data: reader.result.split(',')[1], // Ensure data is in base64 format
+            data: reader.result.split(',')[1], // Extract the base64 part of the data URL
           })
         }
         reader.onerror = reject
-        reader.readAsDataURL(file) // Read file as data URL to get base64 data
+        reader.readAsDataURL(file) // Read the file as a data URL to get base64 data
       })
     })
 
