@@ -31,15 +31,17 @@ export const getMessages = async (queryParams) => {
   return await res.json()
 }
 
-// message new one
+//create message
 export const createMessage = async (token, message) => {
   const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/messages`, {
-    method: 'message',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(message),
   })
-  return await res.json()
+
+  const data = await res.json()
+  return data // Ensure the response includes the necessary file metadata
 }

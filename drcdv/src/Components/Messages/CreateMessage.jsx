@@ -1,18 +1,23 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Form, Button, Container, Alert } from 'react-bootstrap'
+import {
+  Form,
+  Container,
+  Alert,
+  InputGroup,
+  SplitButton,
+  Dropdown,
+} from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSocket } from '../../contexts/SocketContext'
 import { jwtDecode } from 'jwt-decode'
 
-// eslint-disable-next-line react/prop-types
 export function CreateMessage({ channelId }) {
-  // Pass channelId as prop
   const [text, setText] = useState('') // State for the message text
   const [attachments, setAttachments] = useState([]) // State for the message attachments
+  const [showAlert, setShowAlert] = useState(false) // State to control the alert visibility
   const [token] = useAuth() // Fetch token from AuthContext
   const socket = useSocket() // Get the socket instance
-
   const queryClient = useQueryClient() // Initialize the query client
 
   const decodeToken = (token) => {
@@ -41,7 +46,17 @@ export function CreateMessage({ channelId }) {
         })
       }
     }, // Emit createMessage event through socket
-    onSuccess: () => queryClient.invalidateQueries(['messages', channelId]), // Invalidate the 'messages' query on success to refetch the messages
+    onSuccess: () => {
+      queryClient.invalidateQueries(['messages', channelId]) // Invalidate the 'messages' query on success to refetch the messages
+      setText('') // Reset text input
+      setAttachments([]) // Reset attachments
+      setShowAlert(true) // Show success alert
+
+      // Hide the alert after 2 seconds
+      setTimeout(() => {
+        setShowAlert(false)
+      }, 2000)
+    },
   })
 
   const handleSubmit = (e) => {
@@ -50,45 +65,65 @@ export function CreateMessage({ channelId }) {
   }
 
   const handleAttachmentChange = (e) => {
-    const files = Array.from(e.target.files).map((file) => ({
-      filename: file.name,
-      contentType: file.type,
-      gridfsId: null, // Placeholder, as gridfsId will be set on the server side
-    }))
-    setAttachments(files) // Update the attachments state on file input change
+    const files = Array.from(e.target.files)
+    const filePromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          resolve({
+            filename: file.name,
+            contentType: file.type,
+            data: reader.result.split(',')[1], // Ensure data is in base64 format
+          })
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file) // Read file as data URL to get base64 data
+      })
+    })
+
+    Promise.all(filePromises)
+      .then((fileData) => {
+        console.log('File data:', fileData) // Debugging line to check file data
+        setAttachments(fileData)
+      })
+      .catch((error) => console.error('Error reading files:', error))
   }
 
   return (
     <Container className='p-4'>
       <Form onSubmit={handleSubmit}>
-        <Form.Group controlId='create-text'>
-          <Form.Label>Text:</Form.Label>
+        <InputGroup className='mb-3'>
           <Form.Control
+            aria-label='Text input with dropdown button'
             type='text'
+            placeholder='Type your message...'
             value={text}
-            onChange={(e) => setText(e.target.value)} // Update the text state on input change
+            onChange={(e) => setText(e.target.value)}
           />
-        </Form.Group>
-        <Form.Group controlId='create-attachments' className='mt-3'>
-          <Form.Label>Attachments:</Form.Label>
-          <Form.Control
-            type='file'
-            multiple
-            onChange={handleAttachmentChange} // Update the attachments state on file input change
-          />
-        </Form.Group>
-        <Button
-          type='submit'
-          variant='primary'
-          className='mt-3'
-          disabled={!text || createMessageMutation.isPending} // Disable button if text is empty or mutation is pending
-        >
-          {createMessageMutation.isPending ? 'Creating...' : 'Create'}{' '}
-          {/* Change button text based on mutation state */}
-        </Button>
-        {createMessageMutation.isSuccess && (
+          <SplitButton
+            variant='outline-secondary'
+            title={
+              createMessageMutation.isPending ? 'Sending...' : 'Send Message'
+            }
+            type='submit'
+            id='segmented-button-dropdown-1'
+            disabled={!text || createMessageMutation.isPending} // Disable button if text is empty or mutation is pending
+          >
+            <Dropdown.Divider />
+            <Dropdown.Item as='label'>
+              <Form.Control
+                type='file'
+                multiple
+                onChange={handleAttachmentChange}
+                style={{ display: 'none' }}
+              />
+              Select Files
+            </Dropdown.Item>
+          </SplitButton>
+        </InputGroup>
+        {showAlert && (
           <Alert variant='success' className='mt-3'>
-            Message created successfully!
+            Message sent successfully!
           </Alert>
         )}
       </Form>

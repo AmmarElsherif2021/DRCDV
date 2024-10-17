@@ -1,12 +1,14 @@
+/* eslint-disable no-undef */
 import express from 'express'
-import cors from 'cors' // Import the CORS middleware to handle Cross-Origin Resource Sharing
+import cors from 'cors'
 import bodyParser from 'body-parser'
 
 import { usersRoutes } from './routes/users.js'
 import { messagesRoutes } from './routes/message.js'
 import { channelsRoutes } from './routes/channel.js'
 
-const app = express() // Create an instance of an Express application
+const app = express()
+
 const corsOptions = {
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -14,22 +16,23 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-app.use(bodyParser.json()) // Use body-parser to parse JSON request bodies
+app.use(bodyParser.json())
 
-usersRoutes(app) //Register users routes with express application
+// Register routes
+usersRoutes(app)
 messagesRoutes(app)
 channelsRoutes(app)
-// Define a route for the root URL
 
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; connect-src 'self' http://localhost:3001",
+    "default-src 'self'; connect-src 'self' http://localhost:3002",
   )
   next()
 })
+
 app.get('/', (req, res) => {
-  res.send('Hello World from Express dcrcv!') // Send a response for the root URL
+  res.send('Hello World from Express dcrcv!')
 })
 
-export { app } // Export the Express application instance
+export { app }

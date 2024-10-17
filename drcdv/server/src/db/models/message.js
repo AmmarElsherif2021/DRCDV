@@ -1,5 +1,11 @@
+/* eslint-disable no-undef */
 import mongoose, { Schema } from 'mongoose'
-//import bcrypt from 'bcrypt'
+
+const attachmentSchema = new Schema({
+  filename: { type: String },
+  contentType: { type: String },
+  data: { type: Buffer },
+})
 
 const messageSchema = new Schema(
   {
@@ -14,13 +20,7 @@ const messageSchema = new Schema(
       required: true,
     },
     text: { type: String },
-    attachments: [
-      {
-        filename: { type: String },
-        contentType: { type: String },
-        gridfsId: { type: mongoose.Schema.Types.ObjectId }, // Reference to GridFS file
-      },
-    ],
+    attachments: [attachmentSchema],
   },
   { timestamps: true },
 )

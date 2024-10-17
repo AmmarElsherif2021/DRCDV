@@ -14,7 +14,6 @@ import { jwtDecode } from 'jwt-decode'
 export function ChatSpace({ channelId }) {
   const [token] = useAuth()
   const socket = useSocket()
-
   const decodeToken = (token) => {
     if (!token || typeof token !== 'string') {
       console.error('Invalid token:', 'Token must be a valid string')
@@ -30,7 +29,6 @@ export function ChatSpace({ channelId }) {
       return null
     }
   }
-
   const userData = decodeToken(token)
   const [channelMessages, setChannelMessages] = useState([])
   const [channelMembers, setChannelMembers] = useState([])
@@ -39,7 +37,6 @@ export function ChatSpace({ channelId }) {
     queryFn: () => getChannelById(channelId, token),
     enabled: !!channelId,
   })
-
   const listRef = useRef(null)
 
   useEffect(() => {
@@ -62,6 +59,7 @@ export function ChatSpace({ channelId }) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
   }, [channelData, channelId, token])
+
   useEffect(() => {
     if (socket) {
       socket.on('messageCreated', (msg) => {
@@ -70,7 +68,6 @@ export function ChatSpace({ channelId }) {
           listRef.current.scrollTop = listRef.current.scrollHeight
         }
       })
-
       return () => {
         socket.off('messageCreated')
       }
@@ -86,6 +83,7 @@ export function ChatSpace({ channelId }) {
       })
     }
   }
+
   return (
     <>
       {token && channelData ? (
@@ -178,8 +176,41 @@ export function ChatSpace({ channelId }) {
                           <User id={message.sender} />
                         </div>
                       )}
-                      :{'  '}
-                      {message.text}
+                      : {message.text}
+                      {Array.isArray(message.attachments) &&
+                        message.attachments.length > 0 && (
+                          <div style={{ marginTop: '10px' }}>
+                            {message.attachments.map((attachment, i) => (
+                              <div key={i} style={{ marginTop: '5px' }}>
+                                {attachment &&
+                                attachment.contentType &&
+                                attachment.data &&
+                                attachment.contentType.startsWith('image/') ? (
+                                  <img
+                                    src={`data:${attachment.contentType};base64,${attachment.data}`}
+                                    alt={attachment.filename}
+                                    style={{
+                                      maxWidth: '200px',
+                                      maxHeight: '200px',
+                                      display: 'block',
+                                    }}
+                                  />
+                                ) : (
+                                  attachment &&
+                                  attachment.contentType &&
+                                  attachment.data && (
+                                    <a
+                                      href={`data:${attachment.contentType};base64,${attachment.data}`}
+                                      download={attachment.filename}
+                                    >
+                                      {attachment.filename}
+                                    </a>
+                                  )
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                     </Stack>
                   </ListGroup.Item>
                 ))}

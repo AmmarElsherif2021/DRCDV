@@ -10,15 +10,12 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     const socketIO = io('http://localhost:3001')
     setSocket(socketIO)
-
     socketIO.on('connect', () => {
       console.log('Connected to Socket.IO server')
     })
-
     socketIO.on('connect_error', (err) => {
       console.error('Socket.IO connect error:', err)
     })
-
     return () => {
       socketIO.disconnect()
     }

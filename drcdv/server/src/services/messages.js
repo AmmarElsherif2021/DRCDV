@@ -1,33 +1,46 @@
-// Import the Message model from the specified path
 import { Message } from '../db/models/message.js'
-/*
-    sender,
-    channel,
-    text,
-    attachments: [
-      {
-        filename,
-        contentType,
-        gridfsId,
-      },
-    ],
-*/
-
-// Import User model
 import { User } from '../db/models/user.js'
-
+import { Buffer } from 'buffer'
 // Create Message
 export async function createMessage(userId, channelId, { text, attachments }) {
   try {
+    const formattedAttachments = attachments.map((att) => ({
+      filename: att.filename,
+      contentType: att.contentType,
+      data: att.data,
+    }))
+
     const message = new Message({
       text,
-      attachments,
+      attachments: formattedAttachments,
       sender: userId,
       channel: channelId,
     })
+
     return await message.save()
   } catch (error) {
     console.error('Error creating message:', error)
+    throw error
+  }
+}
+export async function getMessagesByChannelId(channelId, options = {}) {
+  try {
+    const messages = await listMessages({ channel: channelId }, options)
+    const formattedMessages = messages.map((message) => ({
+      ...message._doc,
+      attachments: message.attachments.map((att) => {
+        if (att.data && typeof att.data !== 'string') {
+          return {
+            ...att._doc,
+            data: Buffer.from(att.data).toString('base64'), // Ensure data is properly converted
+          }
+        }
+        return att
+      }),
+    }))
+    return formattedMessages
+  } catch (error) {
+    console.error('Error getting messages by channel ID:', error)
     throw error
   }
 }
@@ -74,16 +87,6 @@ async function listMessages(
     return await Message.find(query).sort({ [sortBy]: sortOrder })
   } catch (error) {
     console.error('Error listing messages:', error)
-    throw error
-  }
-}
-
-// List All Messages for a Channel
-export async function getMessagesByChannelId(channelId, options = {}) {
-  try {
-    return await listMessages({ channel: channelId }, options)
-  } catch (error) {
-    console.error('Error getting messages by channel ID:', error)
     throw error
   }
 }

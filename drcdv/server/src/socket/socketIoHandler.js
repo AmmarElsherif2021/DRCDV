@@ -11,7 +11,10 @@ import {
 export function socketHandlers(io) {
   io.on('connection', (socket) => {
     console.log('A user connected')
-
+    socket.on('file-upload', () => {
+      // Handle file upload logic here
+      socket.emit('file-upload-progress', { progress: 50 }) // Example progress update
+    })
     socket.on('createMessage', async (data) => {
       const { userId, channelId, messageData } = data
       try {
