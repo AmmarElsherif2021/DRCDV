@@ -50,6 +50,7 @@ export function Home() {
             variant='outline-secondary'
             className='d-block d-md-none mb-3'
             onClick={toggleVisibility}
+            style={{ position: 'absolute', top: '8rem' }}
           >
             {isVisible ? 'Hide ChannelsBoard' : 'Show ChannelsBoard'}
           </Button>

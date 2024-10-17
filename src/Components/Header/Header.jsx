@@ -19,9 +19,6 @@ export function Header() {
       collapseOnSelect
       expand='lg'
       style={{
-        position: 'relative',
-        top: 0,
-        left: 0,
         width: '100vw',
         height: '5rem',
         zIndex: 10000,

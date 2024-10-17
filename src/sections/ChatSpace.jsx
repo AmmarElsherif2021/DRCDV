@@ -137,8 +137,8 @@ export function ChatSpace({ channelId }) {
               <ListGroup
                 ref={listRef}
                 style={{
-                  minHeight: '30vh',
-                  maxHeight: '30vh',
+                  minHeight: '60vh',
+                  maxHeight: '60vh',
                   overflow: 'auto',
                 }}
               >
