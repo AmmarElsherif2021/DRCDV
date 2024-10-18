@@ -64,7 +64,6 @@ export function messagesRoutes(app) {
       }
     },
   )
-
   // Find and update message route
   app.patch('/api/v1/:cid/messages/:id', requireAuth, async (req, res) => {
     try {

@@ -21,7 +21,6 @@ const io = new SocketIOServer(server, {
   try {
     await initDatabase()
     const PORT = process.env.PORT || 3001
-
     server.listen(PORT, () => {
       console.info(`Server running on http://localhost:${PORT}`)
     })
@@ -31,7 +30,9 @@ const io = new SocketIOServer(server, {
       socket.on('disconnect', () => {
         console.log('a user disconnected')
       })
-      socketHandlers(io)
+
+      // Apply socket handlers
+      socketHandlers(io, socket)
     })
 
     process.on('SIGINT', () => {

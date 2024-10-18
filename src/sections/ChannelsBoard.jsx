@@ -16,7 +16,24 @@ import { ChannelCard } from '../Components/Channels/ChannelCard'
 import { useChannel } from '../contexts/ChannelContext'
 import profileIcon from '../assets/profile.svg'
 import { User } from '../Components/User/User'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+//assets
+import createChannelIcon from '../assets/createGroup.svg'
+import connectionsIcon from '../assets/connections.svg'
+import channelsIcon from '../assets/channels.svg'
+//styles
+const iconDivStyle = {
+  cursor: 'pointer',
+  textAlign: 'center',
+  marginBottom: '2rem',
+  marginTop: '2rem',
+  paddingTop: '2rem',
+  paddingBottom: '2rem',
+  height: '5rem',
+  width: '12rem',
+}
+//ChannelBoard Component .............................................................................
 export function ChannelsBoard() {
   const [token] = useAuth()
   const { setSelectedChannel, setChannelMessages, setChannelMembers } =
@@ -30,16 +47,16 @@ export function ChannelsBoard() {
     try {
       const decoded = jwtDecode(token)
       const userId = decoded.sub
-      const username = decoded.username
-      const email = decoded.email
-      return { userId, username, email }
+      //const username = decoded.username
+      return { userId }
     } catch (error) {
       console.error('Invalid token:', error)
       return null
     }
   }
-
   const userData = decodeToken(token)
+  useEffect(() => console.log(`user data ${JSON.stringify(userData)}`), [])
+  //Tanstack
   const queryClient = useQueryClient()
   const channelsQuery = useQuery({
     queryKey: ['channels', { userId: userData?.userId }],
@@ -81,7 +98,7 @@ export function ChannelsBoard() {
     }
   }
 
-  //UI toggles
+  //UI toggles and hover
   const [showConnections, setShowConnections] = useState(false)
   const [showCreateChannel, setShowCreateChannel] = useState(false)
   const [showChannels, setShowChannels] = useState(false)
@@ -95,6 +112,13 @@ export function ChannelsBoard() {
   const handleCloseChannels = () => setShowChannels(false)
   const handleShowChannels = () => setShowChannels(true)
 
+  const [hoveredButton, setHoveredButton] = useState('')
+  const handleMouseEnter = (button) => {
+    setHoveredButton(button)
+  }
+  const handleMouseLeave = () => {
+    setHoveredButton('')
+  }
   if (!userData) {
     return <div>Please log in to view your channels.</div>
   }
@@ -123,43 +147,115 @@ export function ChannelsBoard() {
           </Button>
         </div>
       ) : (
-        <div style={{ display: 'flex', paddingTop: '5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            paddingTop: '5rem',
+            alignItems: 'center',
+            width: '20rem',
+          }}
+        >
+          <Card className='mb-4 text-center' style={{ width: '10rem' }}>
+            <Card.Body
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
+            >
+              <img
+                src={profileIcon}
+                alt='Profile'
+                style={{ width: '5rem', borderRadius: '50%' }}
+              />
+              <User id={userData.userId} />
+            </Card.Body>
+          </Card>
           <Container
             className='p-4 bg-light'
-            style={{ width: '250px', borderRight: '1px solid #ddd' }}
+            style={{
+              width: '20vw',
+              borderRight: '3px solid #ddd',
+            }}
           >
-            <Card className='mb-4 text-center'>
-              <Card.Body>
-                <img
-                  src={profileIcon}
-                  alt='Profile'
-                  style={{ width: '5rem', borderRadius: '50%' }}
-                />
-                <h3>{userData.username}</h3>
-                <p>{userData.email}</p>
-              </Card.Body>
-            </Card>
-            <Button
-              variant='primary'
+            <div
+              onMouseEnter={() => handleMouseEnter('connections')}
+              onMouseLeave={handleMouseLeave}
               onClick={handleShowConnections}
-              className='w-100 mb-2'
+              style={iconDivStyle}
             >
-              Connections
-            </Button>
-            <Button
-              variant='primary'
+              {hoveredButton === 'connections' ? (
+                <span
+                  style={{
+                    fontWeight: 'bold',
+                    color: 'black',
+                  }}
+                >
+                  Connections
+                </span>
+              ) : (
+                <img
+                  src={connectionsIcon}
+                  alt='Connections'
+                  style={{
+                    width: '3rem',
+                  }}
+                />
+              )}
+            </div>
+            <div
+              onMouseEnter={() => handleMouseEnter('createChannel')}
+              onMouseLeave={handleMouseLeave}
               onClick={handleShowCreateChannel}
-              className='w-100 mb-2'
+              style={iconDivStyle}
             >
-              Create New Channel
-            </Button>
-            <Button
-              variant='primary'
+              {hoveredButton === 'createChannel' ? (
+                <span
+                  style={{
+                    fontWeight: 'bold',
+                    color: 'black',
+                  }}
+                >
+                  Create New Channel
+                </span>
+              ) : (
+                <img
+                  src={createChannelIcon}
+                  alt='Create Channel'
+                  style={{
+                    width: '3rem',
+                  }}
+                />
+              )}
+            </div>
+            <div
+              onMouseEnter={() => handleMouseEnter('channels')}
+              onMouseLeave={handleMouseLeave}
               onClick={handleShowChannels}
-              className='w-100'
+              style={iconDivStyle}
             >
-              Channels
-            </Button>
+              {hoveredButton === 'channels' ? (
+                <span
+                  style={{
+                    fontWeight: 'bold',
+                    color: 'black',
+                    paddingTop: '2rem',
+                    paddingBottom: '2rem',
+                  }}
+                >
+                  Channels
+                </span>
+              ) : (
+                <img
+                  src={channelsIcon}
+                  alt='Channels'
+                  style={{
+                    width: '3rem',
+                  }}
+                />
+              )}
+            </div>
           </Container>
 
           <Offcanvas
@@ -173,7 +269,7 @@ export function ChannelsBoard() {
             </Offcanvas.Header>
             <Offcanvas.Body>
               <Card.Body>
-                <ul style={{ overflowY: 'auto', height: '25vh' }}>
+                <ul style={{ overflowY: 'auto', height: '72vh' }}>
                   {channels
                     .filter((channel) => channel.members.length < 3)
                     .map((channel) => (
@@ -221,7 +317,13 @@ export function ChannelsBoard() {
             </Offcanvas.Header>
             <Offcanvas.Body>
               {channels && channels.length ? (
-                <ListGroup style={{ overflowY: 'auto', height: '50vh' }}>
+                <ListGroup
+                  style={{
+                    overflowY: 'auto',
+
+                    height: '72vh',
+                  }}
+                >
                   {channels
                     .filter((channel) => channel.members.length > 2)
                     .map((channel) => (

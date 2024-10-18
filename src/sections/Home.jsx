@@ -7,7 +7,7 @@ import { useChannel } from '../contexts/ChannelContext'
 import { jwtDecode } from 'jwt-decode'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Link } from 'react-router-dom'
-
+import sidebar from '../assets/sidebar.svg'
 export function Home() {
   const [token] = useAuth()
 
@@ -46,14 +46,32 @@ export function Home() {
           style={{ width: '100vw' }}
         >
           <Header toggleChannelsBoard={toggleVisibility} />
-          <Button
-            variant='outline-secondary'
-            className='d-block d-md-none mb-3'
-            onClick={toggleVisibility}
-            style={{ position: 'absolute', top: '8rem' }}
-          >
-            {isVisible ? 'Hide ChannelsBoard' : 'Show ChannelsBoard'}
-          </Button>
+
+          <Col>
+            {' '}
+            {!isVisible && (
+              <Button
+                variant='outline'
+                className='d-block d-md-none mb-3'
+                onClick={toggleVisibility}
+                style={{
+                  position: 'absolute',
+                  top: '10rem',
+                  width: '4rem',
+                  height: '4rem',
+                  zIndex: 1000,
+                  border: 'none',
+                }}
+              >
+                <img
+                  onClick={toggleVisibility}
+                  src={sidebar}
+                  style={{ width: '3rem' }}
+                />
+              </Button>
+            )}
+          </Col>
+
           <Row className='d-flex flex-column flex-md-row'>
             <Col xs={12} md={4} className='mb-3 mb-md-0 d-none d-md-block'>
               <ChannelsBoard
@@ -68,10 +86,10 @@ export function Home() {
             show={isVisible}
             onHide={toggleVisibility}
             placement='start'
-            style={{ width: '85%' }}
+            style={{ width: '55%' }}
           >
             <Offcanvas.Header closeButton>
-              <Offcanvas.Title>ChannelsBoard</Offcanvas.Title>
+              <Offcanvas.Title>Channels Board</Offcanvas.Title>
             </Offcanvas.Header>
             <Offcanvas.Body>
               <ChannelsBoard

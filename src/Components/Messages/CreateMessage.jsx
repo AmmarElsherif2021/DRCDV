@@ -1,13 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  Form,
-  Container,
-  Alert,
-  InputGroup,
-  SplitButton,
-  Dropdown,
-} from 'react-bootstrap'
+import { Form, Container, Alert, Button } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSocket } from '../../contexts/SocketContext'
 import { jwtDecode } from 'jwt-decode'
@@ -20,26 +13,55 @@ export function CreateMessage({ channelId }) {
   const [token] = useAuth()
   const socket = useSocket()
   const queryClient = useQueryClient()
+  const [userId, setUserId] = useState(null)
 
-  const decodeToken = (token) => {
-    if (!token || typeof token !== 'string') {
-      console.error('Invalid token:', 'Token must be a valid string')
-      return null
+  useEffect(() => {
+    const decodeToken = (token) => {
+      if (!token || typeof token !== 'string') {
+        console.error('Invalid token:', 'Token must be a valid string')
+        return null
+      }
+      try {
+        const decoded = jwtDecode(token)
+        return decoded.sub // Return user ID
+      } catch (error) {
+        console.error('Invalid token:', error)
+        return null
+      }
     }
-    try {
-      const decoded = jwtDecode(token)
-      return decoded.sub // Return user ID
-    } catch (error) {
-      console.error('Invalid token:', error)
-      return null
-    }
-  }
+    setUserId(decodeToken(token))
+  }, [token])
 
-  const userId = decodeToken(token)
+  useEffect(() => {
+    const handleMessageCreated = (msg) => {
+      console.log('Message created:', msg) // Debug log
+      queryClient.invalidateQueries(['messages', channelId])
+      setText('') // Reset text input
+      setAttachments([]) // Reset attachments
+      setShowAlert(true) // Show success alert
+      // Hide the alert after 2 seconds
+      setTimeout(() => {
+        setShowAlert(false)
+      }, 2000)
+    }
+
+    if (socket) {
+      socket.on('messageCreated', handleMessageCreated)
+      console.log('Added socket listener for messageCreated') // Debug log
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('messageCreated', handleMessageCreated)
+        console.log('Removed socket listener for messageCreated') // Debug log
+      }
+    }
+  }, [socket, channelId, queryClient])
 
   const createMessageMutation = useMutation({
     mutationFn: () => {
       if (socket && userId) {
+        console.log('Emitting createMessage') // Debug log
         socket.emit('createMessage', {
           userId,
           channelId,
@@ -47,23 +69,14 @@ export function CreateMessage({ channelId }) {
         })
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['messages', channelId])
-      setText('') // Reset text input
-      setAttachments([]) // Reset attachments
-      setShowAlert(true) // Show success alert
-
-      // Hide the alert after 2 seconds
-      setTimeout(() => {
-        setShowAlert(false)
-      }, 2000)
-    },
   })
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (createMessageMutation.isPending) return // Prevent multiple submits
     createMessageMutation.mutate()
   }
+
   const handleAttachmentChange = (e) => {
     const files = Array.from(e.target.files)
     const filePromises = files.map((file) => {
@@ -80,7 +93,6 @@ export function CreateMessage({ channelId }) {
         reader.readAsDataURL(file) // Read the file as a data URL to get base64 data
       })
     })
-
     Promise.all(filePromises)
       .then((fileData) => {
         console.log('File data:', fileData) // Debugging line to check file data
@@ -92,35 +104,38 @@ export function CreateMessage({ channelId }) {
   return (
     <Container className='p-4'>
       <Form onSubmit={handleSubmit}>
-        <InputGroup className='mb-3'>
+        <Form.Group controlId='messageInput' className='mb-3'>
           <Form.Control
-            aria-label='Text input with dropdown button'
             type='text'
             placeholder='Type your message...'
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          <SplitButton
-            variant='outline-secondary'
-            title={
-              createMessageMutation.isPending ? 'Sending...' : 'Send Message'
-            }
+        </Form.Group>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Form.Group controlId='fileInput' className='mb-3 '>
+            <Form.Control
+              type='file'
+              multiple
+              onChange={handleAttachmentChange}
+            />
+          </Form.Group>
+          <Button
+            variant='primary'
             type='submit'
-            id='segmented-button-dropdown-1'
-            disabled={!text || createMessageMutation.isPending} // Disable button if text is empty or mutation is pending
+            disabled={!text || createMessageMutation.isPending}
+            className='w-20'
+            style={{ backgroundColor: 'black', color: '#1ccb8f' }}
           >
-            <Dropdown.Divider />
-            <Dropdown.Item as='label'>
-              <Form.Control
-                type='file'
-                multiple
-                onChange={handleAttachmentChange}
-                style={{ display: 'none' }}
-              />
-              Select Files
-            </Dropdown.Item>
-          </SplitButton>
-        </InputGroup>
+            {createMessageMutation.isPending ? 'Sending...' : 'Send Message'}
+          </Button>
+        </div>
         {showAlert && (
           <Alert variant='success' className='mt-3'>
             Message sent successfully!

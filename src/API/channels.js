@@ -15,7 +15,7 @@ export const listChannels = async (queryParams) => {
       throw new Error(`Error fetching channels: ${res.statusText}`)
     }
     const data = await res.json()
-    console.log('Fetched channels:', data) // Logging the fetched data
+    //console.log('Fetched channels:', data) // Logging the fetched data
     return data
   } catch (error) {
     console.error('Error listing channels:', error)
@@ -108,7 +108,7 @@ export const getChannelMessages = async (channelId, token) => {
       throw new Error(`Error fetching channel messages: ${res.statusText}`)
     }
     const data = await res.json()
-    console.log('Fetched channel messages:', data) // Logging the fetched messages
+    //console.log('Fetched channel messages:', data) // Logging the fetched messages
     return data
   } catch (error) {
     console.error('Error fetching channel messages:', error)

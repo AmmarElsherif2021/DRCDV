@@ -19,9 +19,10 @@ export function Header() {
       collapseOnSelect
       expand='lg'
       style={{
+        position: 'fixed',
         width: '100vw',
         height: '5rem',
-        zIndex: 10000,
+        zIndex: 20000,
       }}
       className='bg-body-tertiary'
     >

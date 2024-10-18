@@ -1,14 +1,22 @@
-import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Container, Row, Col, ListGroup, Stack } from 'react-bootstrap'
-import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
-import { getMessagesByChannelId } from '../API/messages.js'
-import { useAuth } from '../contexts/AuthContext.jsx'
-import { useSocket } from '../contexts/SocketContext.jsx'
-import { User } from '../Components/User/User.jsx'
-import userAvatar from '../assets/profile.svg'
+import { getMessagesByChannelId } from '../API/messages'
+import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
+import { useSocket } from '../contexts/SocketContext'
+import {
+  Container,
+  Row,
+  Col,
+  ListGroup,
+  Stack,
+  ListGroupItem,
+} from 'react-bootstrap'
+import { CreateMessage } from '../Components/Messages/CreateMessage'
+import { User } from '../Components/User/User'
+import { useEffect, useState, useRef } from 'react'
+import userAvatar from '../assets/Profile.svg'
+import otherUserAvatar from '../assets/otherProfile.svg'
 
 // eslint-disable-next-line react/prop-types
 export function ChatSpace({ channelId }) {
@@ -46,9 +54,6 @@ export function ChatSpace({ channelId }) {
       getMessagesByChannelId(channelId, token)
         .then((messages) => {
           setChannelMessages(messages)
-          messages.forEach((m) =>
-            console.log(`historical message --- ${JSON.stringify(m)}`),
-          )
         })
         .catch((error) => console.error('Error fetching messages:', error))
     }
@@ -102,7 +107,6 @@ export function ChatSpace({ channelId }) {
                   />
                 )}
               </h2>
-              <hr />
               <ListGroup
                 style={{
                   display: 'flex',
@@ -115,21 +119,27 @@ export function ChatSpace({ channelId }) {
                   channelMembers.map(
                     (member, index) =>
                       member.user !== userData.userId && (
-                        <ListGroup.Item
+                        <div
                           key={index}
-                          style={{ flex: '0 0 auto', marginRight: '1rem' }}
+                          style={{
+                            marginRight: '1rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                          }}
                         >
+                          {' '}
                           <div
                             style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
+                              borderRadius: 50,
+                              width: '4rem',
+                              height: '4rem',
                             }}
                           >
-                            <img src={userAvatar} style={{ width: '3rem' }} />
-                            <User id={member.user || userData.userId} />
+                            <img src={userAvatar} style={{ width: '4rem' }} />
                           </div>
-                        </ListGroup.Item>
+                          <User id={member.user || userData.userId} />
+                        </div>
                       ),
                   )}
               </ListGroup>
@@ -143,50 +153,57 @@ export function ChatSpace({ channelId }) {
                 }}
               >
                 {channelMessages.map((message, index) => (
-                  <ListGroup.Item
+                  <ListGroupItem
                     key={index}
                     className={`d-flex justify-content-${
                       message.sender === userData.userId ? 'end' : 'start'
                     }`}
+                    style={{ border: 'none' }}
                   >
                     <Stack
                       direction='horizontal'
                       style={
                         message.sender === userData.userId
                           ? {
-                              backgroundColor: '#007bff',
-                              color: 'white',
+                              backgroundColor: '#1CCB8F',
+                              color: '#000',
                               borderRadius: '15px',
                               padding: '10px',
                               alignSelf: 'flex-end',
                             }
                           : {
-                              backgroundColor: '#6c757d',
-                              color: 'white',
+                              backgroundColor: '#000',
+                              color: '#1CCB8F',
                               borderRadius: '15px',
                               padding: '10px',
                               alignSelf: 'flex-start',
                             }
                       }
                     >
-                      {message.sender === userData.userId ? (
-                        <strong>Me</strong>
+                      {message.sender == userData.userId ? (
+                        <img
+                          src={userAvatar}
+                          alt={message.sender}
+                          style={{ width: '2.5rem' }}
+                        />
                       ) : (
-                        <div>
-                          <User id={message.sender} />
-                        </div>
+                        <img
+                          src={otherUserAvatar}
+                          alt={message.sender}
+                          style={{ width: '2.5rem' }}
+                        />
                       )}
-                      : {message.text}
+                      <span style={{ width: '1rem' }}></span>
+                      {message.text}
                       {Array.isArray(message.attachments) &&
                         message.attachments.length > 0 && (
                           <div style={{ marginTop: '10px' }}>
                             {message.attachments.map((attachment, i) => {
-                              console.log('Attachment:', attachment) // Log attachment data for debugging
                               return (
                                 <div key={i} style={{ marginTop: '5px' }}>
                                   {attachment &&
                                   attachment.contentType &&
-                                  attachment.data &&
+                                  typeof attachment.data === 'string' &&
                                   attachment.contentType.startsWith(
                                     'image/',
                                   ) ? (
@@ -202,7 +219,7 @@ export function ChatSpace({ channelId }) {
                                   ) : (
                                     attachment &&
                                     attachment.contentType &&
-                                    attachment.data && (
+                                    typeof attachment.data === 'string' && (
                                       <a
                                         href={`data:${attachment.contentType};base64,${attachment.data}`}
                                         download={attachment.filename}
@@ -217,7 +234,7 @@ export function ChatSpace({ channelId }) {
                           </div>
                         )}
                     </Stack>
-                  </ListGroup.Item>
+                  </ListGroupItem>
                 ))}
               </ListGroup>
             </Col>
