@@ -34,11 +34,30 @@ export function Home() {
   return (
     <>
       {!userData ? (
-        <div>
-          <h1>Sign in to enjoy messaging experience using DRCDV</h1>
-          <Link to={'/login'}>login</Link>
-          <Link to={'/signup'}>signup</Link>
-        </div>
+        <Container
+          className='text-center mt-5'
+          style={{ width: '100vw', margin: '4vw' }}
+        >
+          <h1>Sign in and enjoy messaging experience using DRCDV</h1>
+          <Link to={'/login'}>
+            <Button
+              variant='dark'
+              className='m-2'
+              style={{ backgroundColor: 'black', color: 'white' }}
+            >
+              Login
+            </Button>
+          </Link>
+          <Link to={'/signup'}>
+            <Button
+              variant='light'
+              className='m-2'
+              style={{ backgroundColor: '#1CCB8F', color: 'black' }}
+            >
+              Signup
+            </Button>
+          </Link>
+        </Container>
       ) : (
         <Container
           fluid

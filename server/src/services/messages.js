@@ -1,7 +1,7 @@
 import { Message } from '../db/models/message.js'
 import { User } from '../db/models/user.js'
 import { Buffer } from 'buffer'
-// Create Message
+import { Channel } from '../db/models/channel.js'
 // Create Message with Binary Data
 export async function createMessage(
   userId,
@@ -9,33 +9,58 @@ export async function createMessage(
   { text, attachments = [] },
 ) {
   try {
+    const formattedAttachments = attachments.map((attachment) => ({
+      ...attachment,
+      data: Buffer.from(attachment.data, 'base64'), // Convert base64 to buffer
+    }))
+
     const message = new Message({
       text,
-      attachments,
+      attachments: formattedAttachments,
       sender: userId,
       channel: channelId,
     })
 
     return await message.save()
   } catch (error) {
-    console.error('Error creating message:', error)
+    console.error('Error creating message:', error) // Log any errors
     throw error
   }
 }
+
 export async function getMessagesByChannelId(channelId, options = {}) {
+  const { limit = 50, sortBy = 'createdAt', sortOrder = 'desc' } = options
   try {
-    const messages = await listMessages({ channel: channelId }, options)
-    const formattedMessages = messages.map((message) => ({
-      ...message._doc,
-      attachments: message.attachments.map((att) => ({
-        ...att._doc,
-        data: att.data ? Buffer.from(att.data).toString('base64') : '', // Ensure encoding to base64
-      })),
-    }))
-    return formattedMessages
+    console.log(`Attempting to fetch messages for channel: ${channelId}`)
+
+    // Check if the channel exists
+    const channelExists = await Channel.exists({ _id: channelId })
+    if (!channelExists) {
+      console.error(`Channel not found: ${channelId}`)
+      throw new Error('Channel not found')
+    }
+
+    const messages = await Message.find({ channel: channelId })
+      .sort({ [sortBy]: sortOrder })
+      .limit(parseInt(limit))
+      .populate('sender', 'username')
+      .lean()
+
+    console.log(`Found ${messages.length} messages for channel ${channelId}`)
+    return messages.map(formatMessage)
   } catch (error) {
     console.error('Error getting messages by channel ID:', error)
     throw error
+  }
+}
+function formatMessage(message) {
+  return {
+    ...message,
+    attachments: message.attachments.map((att) => ({
+      ...att,
+      data: att.data ? att.data.toString('base64') : '',
+      isImage: att.contentType && att.contentType.startsWith('image/'),
+    })),
   }
 }
 

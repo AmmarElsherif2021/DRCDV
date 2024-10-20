@@ -1,29 +1,53 @@
 import multer from 'multer'
 import { requireAuth } from '../middleware/jwt.js'
 import {
-  listAllMessages,
+  getMessagesByChannelId,
   getMessageById,
   createMessage,
   updateMessage,
   deleteMessage,
 } from '../services/messages.js'
-import { getMessagesByChannelId } from '../services/messages.js'
+import { Channel } from '../db/models/channel.js' // Ensure this import path is correct
 
 // Set up Multer for file uploads
 const storage = multer.memoryStorage() // Use in-memory storage for simplicity
 const upload = multer({ storage })
 
-// List messages route
 export function messagesRoutes(app) {
-  app.get('/api/v1/:cid/messages', async (req, res) => {
-    const { sortBy, sortOrder } = req.query
-    const options = { sortBy, sortOrder }
+  // Get messages by channel ID
+  app.get('/api/v1/channels/:cid/messages', requireAuth, async (req, res) => {
+    const { cid } = req.params
+    const { limit = 50, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+    console.log(`Received request for messages in channel: ${cid}`)
+    console.log(
+      `Query params: limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder}`,
+    )
+    console.log(`Auth token: ${req.headers.authorization?.substring(0, 20)}...`)
+
     try {
-      const messages = await listAllMessages(req.params.cid, options)
+      // Check if the channel exists
+      const channelExists = await Channel.exists({ _id: cid })
+      if (!channelExists) {
+        console.log(`Channel not found: ${cid}`)
+        return res.status(404).json({ error: 'Channel not found' })
+      }
+
+      console.log(`Channel ${cid} exists, fetching messages`)
+      const messages = await getMessagesByChannelId(cid, {
+        limit: parseInt(limit),
+        sortBy,
+        sortOrder,
+      })
+      console.log(`Fetched ${messages.length} messages for channel ${cid}`)
       return res.json(messages)
     } catch (err) {
-      console.error('error listing messages', err)
-      return res.status(500).json({ error: 'Error listing messages' })
+      console.error('Error listing messages:', err)
+      if (err.name === 'CastError' && err.kind === 'ObjectId') {
+        return res.status(400).json({ error: 'Invalid channel ID format' })
+      }
+      return res
+        .status(500)
+        .json({ error: 'Error listing messages', details: err.message })
     }
   })
 
@@ -64,6 +88,7 @@ export function messagesRoutes(app) {
       }
     },
   )
+
   // Find and update message route
   app.patch('/api/v1/:cid/messages/:id', requireAuth, async (req, res) => {
     try {
@@ -86,19 +111,6 @@ export function messagesRoutes(app) {
     } catch (err) {
       console.error('error deleting message', err)
       return res.status(500).json({ error: 'Error deleting message' })
-    }
-  })
-
-  // Get messages by channel ID
-  app.get('/api/v1/channels/:cid/messages', async (req, res) => {
-    const { sortBy, sortOrder } = req.query
-    const options = { sortBy, sortOrder }
-    try {
-      const messages = await getMessagesByChannelId(req.params.cid, options)
-      return res.json(messages)
-    } catch (err) {
-      console.error('Error listing messages:', err)
-      return res.status(500).json({ error: 'Error listing messages' })
     }
   })
 

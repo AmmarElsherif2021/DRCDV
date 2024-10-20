@@ -11,16 +11,26 @@ import {
 export function socketHandlers(io) {
   io.on('connection', (socket) => {
     console.log('A user connected')
-    socket.on('file-upload', () => {
-      // Handle file upload logic here
-      socket.emit('file-upload-progress', { progress: 50 }) // Example progress update
-    })
+
     socket.on('createMessage', async (data) => {
       const { userId, channelId, messageData } = data
+      if (!messageData.text || typeof messageData.text !== 'string') {
+        console.error('Invalid message data:', messageData)
+        socket.emit('error', 'Message text is required.')
+        return
+      }
+
       try {
+        console.log('Creating message:', messageData) // Debug log
         const message = await createMessage(userId, channelId, messageData)
-        io.emit('messageCreated', message) // Broadcast to all clients
+
+        // Emit to the client that sent the message
+        socket.emit('messageCreated', message)
+
+        // Broadcast the message to all other clients except the sender
+        socket.broadcast.emit('messageCreated', message)
       } catch (error) {
+        console.error('Error creating message:', error) // Log the error
         socket.emit('error', 'Error creating message')
       }
     })

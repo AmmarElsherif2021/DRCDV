@@ -22,6 +22,8 @@ import { useState, useEffect } from 'react'
 import createChannelIcon from '../assets/createGroup.svg'
 import connectionsIcon from '../assets/connections.svg'
 import channelsIcon from '../assets/channels.svg'
+import { ConnectionsList } from './ConnectionsList'
+import { ChannelsList } from './ChannelsList'
 //styles
 const iconDivStyle = {
   cursor: 'pointer',
@@ -268,25 +270,10 @@ export function ChannelsBoard() {
               <Offcanvas.Title>Connections</Offcanvas.Title>
             </Offcanvas.Header>
             <Offcanvas.Body>
-              <Card.Body>
-                <ul style={{ overflowY: 'auto', height: '72vh' }}>
-                  {channels
-                    .filter((channel) => channel.members.length < 3)
-                    .map((channel) => (
-                      <li
-                        key={channel._id}
-                        style={{ marginBottom: '1rem', height: '7vh' }}
-                      >
-                        <ChannelCard
-                          channelId={channel._id}
-                          title={channel.title}
-                          members={channel.members}
-                          onChannelClick={handleChannelClick}
-                        />
-                      </li>
-                    ))}
-                </ul>
-              </Card.Body>
+              <ConnectionsList
+                channels={channels}
+                handleChannelClick={handleChannelClick}
+              />
             </Offcanvas.Body>
           </Offcanvas>
 
@@ -317,29 +304,10 @@ export function ChannelsBoard() {
             </Offcanvas.Header>
             <Offcanvas.Body>
               {channels && channels.length ? (
-                <ListGroup
-                  style={{
-                    overflowY: 'auto',
-
-                    height: '72vh',
-                  }}
-                >
-                  {channels
-                    .filter((channel) => channel.members.length > 2)
-                    .map((channel) => (
-                      <ListGroupItem
-                        key={channel._id}
-                        style={{ marginBottom: '1rem' }}
-                      >
-                        <ChannelCard
-                          channelId={channel._id}
-                          title={channel.title}
-                          members={channel.members}
-                          onChannelClick={handleChannelClick}
-                        />
-                      </ListGroupItem>
-                    ))}
-                </ListGroup>
+                <ChannelsList
+                  channels={channels}
+                  handleChannelClick={handleChannelClick}
+                />
               ) : (
                 <p>No channels available</p>
               )}

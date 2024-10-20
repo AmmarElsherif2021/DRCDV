@@ -1,6 +1,4 @@
 import { Channel } from '../db/models/channel.js'
-import { Message } from '../db/models/message.js'
-import { User } from '../db/models/user.js' // Ensure the user model is imported
 
 export async function createChannel(userId, channelData) {
   try {
@@ -116,12 +114,12 @@ export async function updateChannelMessages(channelId, message) {
   }
 }
 
-// Function to retrieve message texts from the channel
+// retrieve message texts from the channel
 export async function getChannelMessages(channelId) {
   try {
     const channel = await Channel.findById(channelId).populate({
       path: 'messages',
-      populate: { path: 'sender', model: 'User', select: 'username' }, // Ensure model name matches the User model definition
+      populate: { path: 'sender', model: 'User', select: 'username' },
     })
     if (!channel) throw new Error('Channel not found')
     return channel.messages.map((message) => ({
