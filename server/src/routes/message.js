@@ -17,7 +17,7 @@ export function messagesRoutes(app) {
   // Get messages by channel ID
   app.get('/api/v1/channels/:cid/messages', requireAuth, async (req, res) => {
     const { cid } = req.params
-    const { limit = 50, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+    const { limit = 300, sortBy = 'createdAt', sortOrder = 'asc' } = req.query
     console.log(`Received request for messages in channel: ${cid}`)
     console.log(
       `Query params: limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder}`,

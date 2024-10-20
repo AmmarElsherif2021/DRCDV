@@ -1,150 +1,185 @@
-/* eslint-disable react/prop-types */
-import { useEffect, useState, useRef } from 'react'
-import {
-  Card,
-  ListGroup,
-  ListGroupItem,
-  Spinner,
-  Container,
-  Row,
-  Image,
-  Alert,
-} from 'react-bootstrap'
-import { getMessagesByChannelId } from '../../API/messages'
+import { useRef, useEffect } from 'react'
+import { ListGroup, Image } from 'react-bootstrap'
+import { Chart as ChartJS, registerables } from 'chart.js'
+import { Bar, Line, Pie } from 'react-chartjs-2'
+import { useTable } from 'react-table'
+import userAvatar from '../../assets/profile.svg'
 
-export const MessageList = ({ channelId, token }) => {
-  const [messages, setMessages] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const messagesEndRef = useRef(null)
+// Register Chart.js components
+ChartJS.register(...registerables)
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      setIsLoading(true)
-      setError(null)
-
-      if (!channelId) {
-        console.error('No channel ID provided')
-        setError('No channel ID provided')
-        setIsLoading(false)
-        return
-      }
-
-      console.log(`Fetching messages for channel: ${channelId}`)
-      console.log(`Token: ${token.substring(0, 10)}...`)
-
-      try {
-        const data = await getMessagesByChannelId(channelId, token)
-        console.log(`Received ${data.length} messages`)
-        setMessages(data)
-      } catch (err) {
-        console.error('Error fetching messages:', err)
-        setError(`Error fetching messages: ${err.message}`)
-      } finally {
-        setIsLoading(false)
-      }
+const renderAttachment = (attachment) => {
+  if (attachment.isImage) {
+    return (
+      <Image
+        src={`data:${attachment.contentType};base64,${attachment.data}`}
+        alt={attachment.filename}
+        style={{ maxWidth: '100%', height: 'auto' }}
+        fluid
+      />
+    )
+  } else if (attachment.contentType === 'text/csv') {
+    const data = attachment.chartData
+    if (!data) {
+      return <div>Error: No chart data available</div>
     }
-
-    fetchMessages()
-  }, [channelId, token])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  if (isLoading) return <Spinner animation='border' role='status' />
-
-  if (error) return <Alert variant='danger'>{error}</Alert>
-
-  if (messages.length === 0)
-    return <Alert variant='info'>No messages found for this channel.</Alert>
-
+    if (!data.labels) {
+      return <div>Error: Missing labels in chart data</div>
+    }
+    if (!data.label) {
+      return <div>Error: Missing label in chart data</div>
+    }
+    if (!data.values) {
+      return <div>Error: Missing values in chart data</div>
+    }
+    if (!data.chartType) {
+      return <div>Error: Missing chart type in chart data</div>
+    }
+    if (data && data.labels && data.label && data.values) {
+      const chartData = {
+        labels: data.labels,
+        datasets: [
+          {
+            label: data.label,
+            backgroundColor: 'rgba(75,192,192,0.4)',
+            borderColor: 'rgba(75,192,192,1)',
+            borderWidth: 1,
+            hoverBackgroundColor: 'rgba(75,192,192,0.6)',
+            hoverBorderColor: 'rgba(75,192,192,1)',
+            data: data.values,
+          },
+        ],
+      }
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+      }
+      switch (data.chartType) {
+        case 'bar':
+          return <Bar data={chartData} options={chartOptions} />
+        case 'line':
+          return <Line data={chartData} options={chartOptions} />
+        case 'pie':
+          return <Pie data={chartData} options={chartOptions} />
+        case 'table':
+          const columns = [
+            { Header: 'Label', accessor: 'label' },
+            { Header: 'Value', accessor: 'value' },
+          ]
+          const tableData = data.labels.map((label, index) => ({
+            label,
+            value: data.values[index],
+          }))
+          return <TableComponent columns={columns} data={tableData} />
+        default:
+          return <div>Unsupported chart type</div>
+      }
+    } else {
+      return <div>Invalid chart data</div>
+    }
+  }
   return (
-    <Card style={{ width: '100%', height: '60vh' }}>
-      <Card.Body style={{ padding: 0 }}>
-        <Container fluid style={{ height: '100%', overflowY: 'auto' }}>
-          <Row className='d-flex flex-column-reverse'>
-            {channelMessages.map((message, index) => (
-              <ListGroup.Item
-                key={index}
-                className={`d-flex justify-content-${
-                  message.sender === userData.userId ? 'end' : 'start'
-                }`}
-              >
-                <Stack
-                  direction='horizontal'
-                  style={
-                    message.sender === userData.userId
-                      ? {
-                          backgroundColor: '#007bff',
-                          color: 'white',
-                          borderRadius: '15px',
-                          padding: '10px',
-                          alignSelf: 'flex-end',
-                        }
-                      : {
-                          backgroundColor: '#6c757d',
-                          color: 'white',
-                          borderRadius: '15px',
-                          padding: '10px',
-                          alignSelf: 'flex-start',
-                        }
-                  }
-                >
-                  {message.sender === userData.userId ? (
-                    <strong>Me</strong>
-                  ) : (
-                    <div>
-                      <User id={message.sender} />
-                    </div>
-                  )}
-                  : {message.text}
-                  {Array.isArray(message.attachments) &&
-                    message.attachments.length > 0 && (
-                      <div style={{ marginTop: '10px' }}>
-                        {message.attachments.map((attachment, i) => {
-                          console.log('Attachment:', attachment) // Log attachment data for debugging
-                          return (
-                            <div key={i} style={{ marginTop: '5px' }}>
-                              {attachment &&
-                              attachment.contentType &&
-                              attachment.data &&
-                              attachment.contentType.startsWith('image/') ? (
-                                <img
-                                  src={`data:${attachment.contentType};base64,${attachment.data}`}
-                                  alt={attachment.filename}
-                                  style={{
-                                    maxWidth: '200px',
-                                    maxHeight: '200px',
-                                    display: 'block',
-                                  }}
-                                />
-                              ) : (
-                                attachment &&
-                                attachment.contentType &&
-                                attachment.data && (
-                                  <a
-                                    href={`data:${attachment.contentType};base64,${attachment.data}`}
-                                    download={attachment.filename}
-                                  >
-                                    {attachment.filename}
-                                  </a>
-                                )
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                </Stack>
-              </ListGroup.Item>
-            ))}
-          </Row>
-          <div ref={messagesEndRef} />
-        </Container>
-      </Card.Body>
-    </Card>
+    <a
+      href={`data:${attachment.contentType};base64,${attachment.data}`}
+      download={attachment.filename}
+      className='text-white'
+    >
+      {attachment.filename}
+    </a>
   )
 }
 
-export default MessageList
+const TableComponent = ({ columns, data }) => {
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable({ columns, data })
+  return (
+    <table
+      {...getTableProps()}
+      style={{ width: '100%', marginTop: '10px', wordWrap: 'break-word' }}
+    >
+      <thead>
+        {headerGroups.map((headerGroup) => (
+          <tr {...headerGroup.getHeaderGroupProps()}>
+            {headerGroup.headers.map((column) => (
+              <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+            ))}
+          </tr>
+        ))}
+      </thead>
+      <tbody {...getTableBodyProps()}>
+        {rows.map((row) => {
+          prepareRow(row)
+          return (
+            <tr {...row.getRowProps()}>
+              {row.cells.map((cell) => (
+                <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+              ))}
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+}
+
+export const MessagingList = ({ messages, currentUserId }) => {
+  const listRef = useRef(null)
+
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight
+    }
+  }, [messages])
+
+  return (
+    <ListGroup
+      ref={listRef}
+      style={{
+        height: '60vh',
+        overflowY: 'auto',
+      }}
+    >
+      {messages?.map((message, index) => (
+        <ListGroup.Item
+          key={message._id || index}
+          className={`d-flex justify-content-${
+            message.sender._id === currentUserId ? 'end' : 'start'
+          } border-0 bg-transparent`}
+        >
+          <div
+            className={`d-flex align-items-start ${
+              message.sender._id === currentUserId
+                ? 'flex-row-reverse'
+                : 'flex-row'
+            }`}
+            style={{ maxWidth: '70%' }}
+          >
+            <Image
+              src={userAvatar}
+              alt={message.sender.username}
+              roundedCircle
+              style={{ width: '2.5rem', height: '2.5rem' }}
+            />
+            <div
+              className={`mx-2 p-3 rounded ${
+                message.sender._id === currentUserId
+                  ? 'bg-primary text-white'
+                  : 'bg-light text-dark'
+              }`}
+              style={{ wordBreak: 'break-word' }}
+            >
+              <p className='mb-1'>{message.text}</p>
+              {message.attachments?.map((attachment, i) => (
+                <div key={i} className='mt-2' style={{ maxWidth: '100%' }}>
+                  {renderAttachment(attachment)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </ListGroup.Item>
+      ))}
+    </ListGroup>
+  )
+}
+
+export default MessagingList

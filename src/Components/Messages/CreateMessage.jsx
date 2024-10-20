@@ -43,7 +43,6 @@ export function CreateMessage({ channelId }) {
     if (socket) {
       socket.on('messageCreated', handleMessageCreated)
       console.log('Added socket listener for messageCreated')
-
       return () => {
         socket.off('messageCreated', handleMessageCreated)
         console.log('Removed socket listener for messageCreated')
@@ -52,7 +51,6 @@ export function CreateMessage({ channelId }) {
   }, [socket, handleMessageCreated])
 
   // Creation in db
-
   const createMessageMutation = useMutation({
     mutationFn: () => {
       if (socket && userId && !sending) {
@@ -60,7 +58,7 @@ export function CreateMessage({ channelId }) {
         socket.emit('createMessage', {
           userId,
           channelId,
-          messageData: { text, attachments },
+          messageData: { text, attachments, channel: channelId },
         })
         setSending(true)
       }
@@ -102,7 +100,8 @@ export function CreateMessage({ channelId }) {
       .then(setAttachments)
       .catch((error) => console.error('Error reading files:', error))
   }
-  //display msgs
+
+  // display msgs
   return (
     <Container className='p-4'>
       <Form onSubmit={(e) => handleSubmit(e)}>

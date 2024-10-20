@@ -21,6 +21,7 @@ export async function listChannels(
   return await Channel.find(query).sort({ [sortBy]: sortOrder })
 }
 
+//In use
 export async function getChannelById(channelId) {
   try {
     return await Channel.findById(channelId)

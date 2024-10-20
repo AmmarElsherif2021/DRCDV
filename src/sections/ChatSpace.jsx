@@ -1,22 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Container,
-  Row,
-  Col,
-  ListGroup,
-  Stack,
-  Spinner,
-  Image,
-} from 'react-bootstrap'
+import { Container, Row, Col, ListGroup, Spinner, Image } from 'react-bootstrap'
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
 import { getMessagesByChannelId } from '../API/messages.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useSocket } from '../contexts/SocketContext.jsx'
-import { User } from '../Components/User/User.jsx'
 import userAvatar from '../assets/profile.svg'
 import { jwtDecode } from 'jwt-decode'
+import MessagingList from '../Components/Messages/MessageList.jsx'
 
 export const ChatSpace = ({ channelId }) => {
   const [token] = useAuth()
@@ -39,41 +31,43 @@ export const ChatSpace = ({ channelId }) => {
   const userData = decodeToken(token)
   const [channelMessages, setChannelMessages] = useState([])
   const [channelMembers, setChannelMembers] = useState([])
-  const listRef = useRef(null)
 
-  const { data: channelData } = useQuery({
+  const { data: channelData, isLoading: isChannelLoading } = useQuery({
     queryKey: ['channel', { channelId }],
     queryFn: () => getChannelById(channelId, token),
     enabled: !!channelId,
   })
 
+  const { data: messagesData, isLoading: isMessagesLoading } = useQuery({
+    queryKey: ['messages', { channelId }],
+    queryFn: () => getMessagesByChannelId(channelId, token),
+    enabled: !!channelId,
+  })
+
   useEffect(() => {
     if (channelData) {
-      // Fetch channel messages
-      getMessagesByChannelId(channelId, token)
-        .then((messages) => {
-          setChannelMessages(messages)
-        })
-        .catch((error) => console.error('Error fetching messages:', error))
+      if (channelData.members) {
+        setChannelMembers(channelData.members)
+      }
     }
-    if (channelData && channelData.members) {
-      setChannelMembers(channelData.members)
+  }, [channelData])
+
+  useEffect(() => {
+    if (messagesData) {
+      setChannelMessages(messagesData)
     }
-    if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight
-    }
-  }, [channelData, channelId, token])
+  }, [messagesData])
 
   useEffect(() => {
     if (socket) {
-      socket.on('messageCreated', (msg) => {
+      const handleNewMessage = (msg) => {
         setChannelMessages((prevMessages) => [...prevMessages, msg])
-        if (listRef.current) {
-          listRef.current.scrollTop = listRef.current.scrollHeight
-        }
-      })
+      }
+
+      socket.on('messageCreated', handleNewMessage)
+
       return () => {
-        socket.off('messageCreated')
+        socket.off('messageCreated', handleNewMessage)
       }
     }
   }, [socket])
@@ -88,20 +82,19 @@ export const ChatSpace = ({ channelId }) => {
     }
   }
 
-  if (!channelData) return <Spinner animation='border' role='status' />
+  if (isChannelLoading || isMessagesLoading)
+    return <Spinner animation='border' role='status' />
+
+  const channelTitle = channelData?.title
+    ? channelData.title.split(',').filter((x) => x !== userData.userId)[0] ||
+      userData.userId
+    : ''
 
   return (
     <Container className='p-3'>
       <Row>
         <Col>
-          <h2>
-            {channelData &&
-              channelData.title &&
-              (channelData.title
-                .split(',')
-                .filter((x) => x !== userData.userId)[0] ||
-                userData.userId)}
-          </h2>
+          <h2>{channelTitle}</h2>
           <hr />
           <ListGroup
             style={{
@@ -113,10 +106,10 @@ export const ChatSpace = ({ channelId }) => {
           >
             {channelMembers.length > 2 &&
               channelMembers.map(
-                (member, index) =>
+                (member) =>
                   member.user !== userData.userId && (
                     <ListGroup.Item
-                      key={index}
+                      key={member.user}
                       style={{ flex: '0 0 auto', marginRight: '1rem' }}
                     >
                       <div
@@ -126,7 +119,7 @@ export const ChatSpace = ({ channelId }) => {
                           alignItems: 'center',
                         }}
                       >
-                        <img src={userAvatar} style={{ width: '3rem' }} />
+                        <Image src={userAvatar} style={{ width: '3rem' }} />
                         {member.username}
                       </div>
                     </ListGroup.Item>
@@ -134,68 +127,10 @@ export const ChatSpace = ({ channelId }) => {
               )}
           </ListGroup>
           <hr />
-          <ListGroup
-            ref={listRef}
-            style={{
-              minHeight: '60vh',
-              maxHeight: '60vh',
-              overflow: 'auto',
-            }}
-          >
-            {channelMessages.map((message, index) => (
-              <ListGroup.Item
-                key={index}
-                className={`d-flex justify-content-${
-                  message.sender._id === userData.userId ? 'end' : 'start'
-                }`}
-              >
-                <div
-                  className={`d-flex align-items-start ${
-                    message.sender._id === userData.userId
-                      ? 'flex-row-reverse'
-                      : 'flex-row'
-                  }`}
-                >
-                  <Image
-                    src={userAvatar}
-                    alt={message.sender.username}
-                    roundedCircle
-                    style={{ width: '2.5rem', height: '2.5rem' }}
-                  />
-                  <div
-                    className={`mx-2 p-3 rounded-lg ${
-                      message.sender._id === userData.userId
-                        ? 'bg-primary text-white'
-                        : 'bg-light text-dark'
-                    }`}
-                  >
-                    <p className='mb-1'>{message.text}</p>
-                    {message.attachments &&
-                      message.attachments.map((attachment, i) => (
-                        <div key={i} className='mt-2'>
-                          {attachment.isImage ? (
-                            <Image
-                              src={`data:${attachment.contentType};base64,${attachment.data}`}
-                              alt={attachment.filename}
-                              style={{ maxWidth: '200px', maxHeight: '200px' }}
-                              fluid
-                            />
-                          ) : (
-                            <a
-                              href={`data:${attachment.contentType};base64,${attachment.data}`}
-                              download={attachment.filename}
-                              className='text-primary'
-                            >
-                              {attachment.filename}
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
+          <MessagingList
+            messages={channelMessages}
+            currentUserId={userData.userId}
+          />
         </Col>
       </Row>
       <CreateMessage channelId={channelId} sendMessage={sendMessage} />
