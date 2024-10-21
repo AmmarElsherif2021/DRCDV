@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Container, Row, Col, ListGroup, Spinner, Image } from 'react-bootstrap'

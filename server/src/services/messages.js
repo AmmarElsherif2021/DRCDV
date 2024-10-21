@@ -3,8 +3,9 @@ import { User } from '../db/models/user.js'
 import { Buffer } from 'buffer'
 import { Channel } from '../db/models/channel.js'
 import { parse } from 'csv-parse/sync'
+import * as d3 from 'd3'
+import * as XLSX from 'xlsx'
 
-// Create Message with Binary Data
 export async function createMessage(
   userId,
   channelId,
@@ -12,63 +13,16 @@ export async function createMessage(
 ) {
   try {
     const formattedAttachments = attachments.map((attachment) => {
-      if (attachment.contentType === 'text/csv') {
-        try {
-          console.log('Processing CSV attachment:', attachment)
-
-          if (!attachment.data) {
-            console.error('CSV attachment data is missing')
-            throw new Error('CSV attachment data is missing')
-          }
-
-          // Parse CSV data
-          const parsedData = parse(attachment.data, {
-            columns: true,
-            skip_empty_lines: true,
-          })
-
-          console.log('Parsed CSV data:', parsedData)
-
-          // Check if parsedData is empty or not an array
-          if (!Array.isArray(parsedData) || parsedData.length === 0) {
-            console.warn('CSV parsing resulted in empty or invalid data')
-            return {
-              ...attachment,
-              data: Buffer.from(attachment.data, 'base64'),
-              chartData: { labels: [], values: [] },
-            }
-          }
-
-          // Extract labels and values
-          const labels = Object.keys(parsedData[0])
-          const values = parsedData.map((row) => Object.values(row))
-
-          console.log('Extracted labels:', labels)
-          console.log('Extracted values (first row):', values[0])
-
-          if (labels.length === 0) {
-            console.error('CSV has no columns')
-            throw new Error('CSV has no columns')
-          }
-
-          return {
-            ...attachment,
-            data: Buffer.from(JSON.stringify({ labels, values })),
-            chartData: { labels, values },
-          }
-        } catch (csvError) {
-          console.error('Error processing CSV attachment:', csvError)
+      switch (attachment.contentType) {
+        case 'text/csv':
+          return processCsvAttachment(attachment)
+        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+          return processExcelAttachment(attachment)
+        default:
           return {
             ...attachment,
             data: Buffer.from(attachment.data, 'base64'),
-            chartData: { labels: [], values: [] },
-            parseError: csvError.message,
           }
-        }
-      }
-      return {
-        ...attachment,
-        data: Buffer.from(attachment.data, 'base64'),
       }
     })
 
@@ -85,6 +39,60 @@ export async function createMessage(
     throw error
   }
 }
+
+function processCsvAttachment(attachment) {
+  try {
+    const csvData = d3.csvParse(attachment.data.toString())
+
+    if (!Array.isArray(csvData) || csvData.length === 0) {
+      throw new Error('CSV parsing resulted in empty or invalid data')
+    }
+
+    const labels = Object.keys(csvData[0])
+    const values = csvData.map((row) => Object.values(row).map(Number))
+
+    return {
+      ...attachment,
+      data: Buffer.from(JSON.stringify({ labels, values })),
+      chartData: { labels, values, chartType: 'bar' }, // Default to bar chart
+    }
+  } catch (csvError) {
+    console.error('Error processing CSV attachment:', csvError)
+    return {
+      ...attachment,
+      data: Buffer.from(attachment.data, 'base64'),
+      chartData: { labels: [], values: [] },
+      parseError: csvError.message,
+    }
+  }
+}
+
+function processExcelAttachment(attachment) {
+  try {
+    const workbook = XLSX.read(attachment.data, { type: 'buffer' })
+    const sheetName = workbook.SheetNames[0]
+    const sheet = workbook.Sheets[sheetName]
+    const data = XLSX.utils.sheet_to_json(sheet)
+
+    const labels = Object.keys(data[0])
+    const values = data.map((row) => Object.values(row).map(Number))
+
+    return {
+      ...attachment,
+      data: attachment.data.toString('base64'),
+      chartData: { labels, values, chartType: 'bar' },
+    }
+  } catch (excelError) {
+    console.error('Error processing Excel attachment:', excelError)
+    return {
+      ...attachment,
+      data: Buffer.from(attachment.data, 'base64'),
+      chartData: { labels: [], values: [] },
+      parseError: excelError.message,
+    }
+  }
+}
+
 export async function getMessagesByChannelId(channelId, options = {}) {
   const { limit = 300, sortBy = 'createdAt', sortOrder = 'asc' } = options
   try {
@@ -103,65 +111,49 @@ export async function getMessagesByChannelId(channelId, options = {}) {
       .lean()
 
     console.log(`Found ${messages.length} messages for channel ${channelId}`)
-    return messages.map(formatMessage)
+    return messages.map((x) => formatMessage(x))
   } catch (error) {
     console.error('Error getting messages by channel ID:', error)
     throw error
   }
 }
-
 function formatMessage(message) {
   return {
     ...message,
     attachments: message.attachments.map((att) => {
-      if (att.contentType === 'text/csv') {
+      if (
+        att.contentType === 'text/csv' ||
+        att.contentType ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ) {
         try {
-          console.log('Processing CSV attachment:', att)
+          console.log('Processing attachment:', att)
 
           if (!att.data) {
-            console.error('CSV attachment data is missing')
-            throw new Error('CSV attachment data is missing')
+            console.error('Attachment data is missing')
+            throw new Error('Attachment data is missing')
           }
 
-          console.log(
-            'CSV data (first 100 chars):',
-            att.data.toString().substring(0, 100),
-          )
-
-          const parsedCSV = parse(att.data.toString(), {
-            columns: true,
-            skip_empty_lines: true,
-          })
-
-          console.log(
-            'Parsed CSV:',
-            JSON.stringify(parsedCSV).substring(0, 200),
-          )
-
-          if (!parsedCSV || parsedCSV.length === 0) {
-            console.error('Parsed CSV is empty')
-            throw new Error('Parsed CSV is empty')
+          let parsedData
+          if (att.contentType === 'text/csv') {
+            parsedData = processCsvData(att.data)
+          } else {
+            parsedData = processExcelData(att.data)
           }
 
-          const labels = Object.keys(parsedCSV[0])
-          console.log('CSV labels:', labels)
-
-          const values = parsedCSV.map((row) => Object.values(row))
-          console.log('CSV values (first row):', values[0])
-
-          if (labels.length === 0) {
-            console.error('CSV has no columns')
-            throw new Error('CSV has no columns')
+          if (!parsedData || !parsedData.labels || !parsedData.values) {
+            console.error('Parsed data is invalid')
+            throw new Error('Parsed data is invalid')
           }
 
           return {
             ...att,
             data: att.data.toString('base64'),
-            chartData: { labels, values },
+            chartData: parsedData,
             isImage: false,
           }
         } catch (error) {
-          console.error('Error parsing CSV attachment data:', error)
+          console.error('Error parsing attachment data:', error)
           console.error('Error stack:', error.stack)
           return {
             ...att,
@@ -179,6 +171,29 @@ function formatMessage(message) {
       }
     }),
   }
+}
+
+function processCsvData(data) {
+  const csvData = d3.csvParse(data.toString())
+  if (!Array.isArray(csvData) || csvData.length === 0) {
+    throw new Error('CSV parsing resulted in empty or invalid data')
+  }
+  const labels = Object.keys(csvData[0])
+  const values = csvData.map((row) => Object.values(row).map(Number))
+  return { labels, values, chartType: 'bar' }
+}
+
+function processExcelData(data) {
+  const workbook = XLSX.read(data, { type: 'buffer' })
+  const sheetName = workbook.SheetNames[0]
+  const sheet = workbook.Sheets[sheetName]
+  const jsonData = XLSX.utils.sheet_to_json(sheet)
+  if (!Array.isArray(jsonData) || jsonData.length === 0) {
+    throw new Error('Excel parsing resulted in empty or invalid data')
+  }
+  const labels = Object.keys(jsonData[0])
+  const values = jsonData.map((row) => Object.values(row).map(Number))
+  return { labels, values, chartType: 'bar' }
 }
 
 // Get Message by id

@@ -28,15 +28,23 @@ export function Header() {
     >
       <Container>
         <Navbar.Brand href='#home'>
-          <img src={logo} style={{ width: '4rem', margin: '1rem' }} />
+          <img
+            src={logo}
+            style={{ width: '3.5rem', height: '3.5rem', margin: '1rem' }}
+          />
           DRCDV
         </Navbar.Brand>
         <Navbar.Toggle aria-controls='responsive-navbar-nav' />
-        <Navbar.Collapse id='responsive-navbar-nav'>
+        <Navbar.Collapse
+          id='responsive-navbar'
+          style={{
+            zIndex: 10000,
+          }}
+        >
           <Nav className='me-auto'></Nav>
-          <Nav>
+          <Nav style={{ backgroundColor: '#333220', color: '#fff' }}>
             {token ? (
-              <>
+              <div>
                 <Navbar.Text className='me-3'>
                   Logged in as <User id={jwtDecode(token).sub} />
                 </Navbar.Text>
@@ -48,7 +56,7 @@ export function Header() {
                 >
                   Logout
                 </Button>
-              </>
+              </div>
             ) : (
               <>
                 <Nav.Link as={Link} to='/login'>

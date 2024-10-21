@@ -1,36 +1,69 @@
-// Get messages by channel ID
-app.get('/api/v1/channels/:cid/messages', requireAuth, async (req, res) => {
-  const { cid } = req.params
-  const { limit = 50, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
-  console.log(`Received request for messages in channel: ${cid}`)
-  console.log(
-    `Query params: limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder}`,
-  )
-  console.log(`Auth token: ${req.headers.authorization?.substring(0, 20)}...`)
+import React from 'react'
+import { Image } from 'react-bootstrap'
+import { Chart, Table, ExcelViewer } from './DataVisuals'
+import { Document, Page } from 'react-pdf'
 
-  try {
-    // Check if the channel exists
-    const channelExists = await Channel.exists({ _id: cid })
-    if (!channelExists) {
-      console.log(`Channel not found: ${cid}`)
-      return res.status(404).json({ error: 'Channel not found' })
+import React from 'react';
+import { Chart, Table, ExcelViewer } from '@/components/ui/data-visuals';
+import { Button } from '@/components/ui/button';
+import { Camera } from 'lucide-react';
+
+const EnhancedAttachment = ({ attachment }) => {
+  const renderDownloadLink = () => (
+    <Button
+      asChild
+      className="mt-2"
+    >
+      <a
+        href={`data:${attachment.contentType};base64,${attachment.data}`}
+        download={attachment.filename}
+      >
+        Download {attachment.filename}
+      </a>
+    </Button>
+  );
+
+  const renderContent = () => {
+    if (attachment.isImage) {
+      return (
+        <div className="relative w-full h-48">
+          <img
+            src={`data:${attachment.contentType};base64,${attachment.data}`}
+            alt={attachment.filename}
+            className="object-contain w-full h-full"
+          />
+        </div>
+      );
     }
 
-    console.log(`Channel ${cid} exists, fetching messages`)
-    const messages = await getMessagesByChannelId(cid, {
-      limit: parseInt(limit),
-      sortBy,
-      sortOrder,
-    })
-    console.log(`Fetched ${messages.length} messages for channel ${cid}`)
-    return res.json(messages)
-  } catch (err) {
-    console.error('Error listing messages:', err)
-    if (err.name === 'CastError' && err.kind === 'ObjectId') {
-      return res.status(400).json({ error: 'Invalid channel ID format' })
+    if (attachment.contentType === 'text/csv' && attachment.chartData) {
+      return <Chart data={attachment.chartData} />;
     }
-    return res
-      .status(500)
-      .json({ error: 'Error listing messages', details: err.message })
-  }
-})
+
+    if (
+      attachment.contentType ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      return <ExcelViewer data={attachment.data} />;
+    }
+
+    // Fallback for other file types
+    return (
+      <div className="flex items-center space-x-2">
+        <Camera size={24} />
+        <span>{attachment.filename}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="attachment-wrapper space-y-2">
+      {renderContent()}
+      {renderDownloadLink()}
+    </div>
+  );
+};
+
+export default EnhancedAttachment;
+
+export default EnhancedAttachment
