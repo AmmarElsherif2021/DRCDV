@@ -92,12 +92,12 @@ export function Home() {
           </Col>
 
           <Row className='d-flex flex-column flex-md-row'>
-            <Col xs={12} md={4} className='mb-3 mb-md-0 d-none d-md-block'>
+            <Col xs={12} md={3} className='mb-3 mb-md-0 d-none d-md-block'>
               <ChannelsBoard
                 onChannelClick={(channelId) => setSelectedChannel(channelId)}
               />
             </Col>
-            <Col xs={12} md={8} className='flex-grow-1'>
+            <Col xs={12} md={9} className='flex-grow-1'>
               <ChatSpace channelId={selectedChannel} />
             </Col>
           </Row>

@@ -92,7 +92,7 @@ export const ChatSpace = ({ channelId }) => {
     : ''
 
   return (
-    <Container className='p-3'>
+    <Container className='p-4'>
       <Row>
         <Col>
           <h2>{channelTitle}</h2>

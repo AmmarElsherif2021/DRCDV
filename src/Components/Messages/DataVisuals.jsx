@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useRef, useEffect, useState } from 'react'
-import { Image, Button } from 'react-bootstrap'
+import { Image, Button, Table, Alert } from 'react-bootstrap'
+
 import { Camera } from 'lucide-react'
 import * as d3 from 'd3'
 import * as XLSX from 'xlsx'
@@ -55,106 +56,131 @@ export const Chart = ({ data }) => {
   return <div ref={chartRef}></div>
 }
 
-export const Table = ({ columns, data }) => {
-  const tableRef = useRef(null)
-
-  useEffect(() => {
-    if (tableRef.current && columns && data) {
-      d3.select(tableRef.current).selectAll('*').remove()
-
-      const table = d3.select(tableRef.current).append('table')
-      const thead = table.append('thead')
-      const tbody = table.append('tbody')
-
-      thead
-        .append('tr')
-        .selectAll('th')
-        .data(columns)
-        .enter()
-        .append('th')
-        .text((d) => d)
-
-      const rows = tbody.selectAll('tr').data(data).enter().append('tr')
-
-      rows
-        .selectAll('td')
-        .data((row) => columns.map((column) => row[column]))
-        .enter()
-        .append('td')
-        .text((d) => d)
-    }
-  }, [columns, data])
-
-  return <div ref={tableRef}></div>
-}
-
 export const ExcelViewer = ({ data }) => {
   const [sheets, setSheets] = useState([])
   const [activeSheet, setActiveSheet] = useState(0)
+  const [tableData, setTableData] = useState({ headers: [], rows: [] })
 
   useEffect(() => {
     if (data) {
       try {
-        const parsedData = typeof data === 'string' ? JSON.parse(data) : data
-
-        if (parsedData.labels && parsedData.values) {
+        if (typeof data === 'string') {
+          const workbook = XLSX.read(data, { type: 'base64' })
+          const sheetsData = workbook.SheetNames.map((name) => {
+            const sheet = workbook.Sheets[name]
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 })
+            return {
+              name,
+              headers: jsonData[0] || [],
+              rows: jsonData.slice(1) || [],
+            }
+          })
+          setSheets(sheetsData)
+          if (sheetsData.length > 0) {
+            setTableData({
+              headers: sheetsData[0].headers,
+              rows: sheetsData[0].rows,
+            })
+          }
+        } else if (data.labels && data.values) {
           setSheets([
             {
               name: 'Sheet1',
-              data: [parsedData.labels, ...parsedData.values],
+              headers: data.labels,
+              rows: data.values,
             },
           ])
-        } else {
-          const workbook = XLSX.read(data, { type: 'base64' })
-          const sheetsData = workbook.SheetNames.map((name) => ({
-            name,
-            data: XLSX.utils.sheet_to_json(workbook.Sheets[name], {
-              header: 1,
-            }),
-          }))
-          setSheets(sheetsData)
+          setTableData({
+            headers: data.labels,
+            rows: data.values,
+          })
         }
       } catch (error) {
         console.error('Error processing Excel data:', error)
         setSheets([])
+        setTableData({ headers: [], rows: [] })
       }
     }
   }, [data])
 
-  if (sheets.length === 0)
-    return <div>No Excel data available or error in processing.</div>
+  const handleSheetChange = (index) => {
+    setActiveSheet(index)
+    setTableData({
+      headers: sheets[index].headers,
+      rows: sheets[index].rows,
+    })
+  }
 
-  const activeData = sheets[activeSheet].data
+  if (!data)
+    return (
+      <div className='p-4 text-center text-gray-500'>
+        No Excel data available
+      </div>
+    )
 
   return (
-    <div>
+    <div className='w-full'>
       {sheets.length > 1 && (
-        <div>
+        <div className='mb-4 flex gap-2'>
           {sheets.map((sheet, index) => (
-            <button key={sheet.name} onClick={() => setActiveSheet(index)}>
+            <button
+              key={sheet.name}
+              onClick={() => handleSheetChange(index)}
+              className={`px-3 py-1 text-sm rounded-md transition-colors
+                ${
+                  activeSheet === index
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-blue-500 border border-blue-500 hover:bg-blue-50'
+                }`}
+            >
               {sheet.name}
             </button>
           ))}
         </div>
       )}
-      <table className='table table-bordered table-striped'>
-        <thead>
-          <tr>
-            {activeData[0].map((cell, index) => (
-              <th key={index}>{cell}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {activeData.slice(1).map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {row.map((cell, cellIndex) => (
-                <td key={cellIndex}>{cell}</td>
+
+      <div className='w-full overflow-x-auto'>
+        <table className='min-w-full border-collapse'>
+          <thead>
+            <tr className='bg-gray-50'>
+              {tableData.headers.map((header, index) => (
+                <th
+                  key={index}
+                  className='px-4 py-2 border border-gray-200 text-left text-sm font-medium text-gray-700'
+                >
+                  {header}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tableData.rows.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+              >
+                {Array.isArray(row)
+                  ? row.map((cell, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className='px-4 py-2 border border-gray-200 text-sm text-gray-900'
+                      >
+                        {cell?.toString()}
+                      </td>
+                    ))
+                  : tableData.headers.map((header, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className='px-4 py-2 border border-gray-200 text-sm text-gray-900'
+                      >
+                        {row[header]?.toString()}
+                      </td>
+                    ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -215,56 +241,136 @@ export const Attachment = ({ attachment }) => {
   )
 }
 
-//Enhanced Att.
 export const EnhancedAttachment = ({ attachment }) => {
-  const renderDownloadLink = () => (
-    <Button asChild className='mt-2'>
-      <a
-        href={`data:${attachment.contentType};base64,${attachment.data}`}
-        download={attachment.filename}
-      >
-        Download {attachment.filename}
-      </a>
+  const [tableData, setTableData] = useState({ headers: [], rows: [] })
+
+  useEffect(() => {
+    if (attachment) {
+      try {
+        if (attachment.contentType === 'text/csv') {
+          if (attachment.chartData) {
+            setTableData({
+              headers: attachment.chartData.labels,
+              rows: attachment.chartData.values.map((value, index) => ({
+                [attachment.chartData.labels[0]]:
+                  attachment.chartData.labels[index],
+                [attachment.chartData.labels[1]]: value,
+              })),
+            })
+          }
+        } else if (
+          attachment.contentType ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          if (attachment.data && typeof attachment.data === 'object') {
+            const parsedData =
+              typeof attachment.data === 'string'
+                ? JSON.parse(attachment.data)
+                : attachment.data
+
+            if (Array.isArray(parsedData)) {
+              setTableData({
+                headers: parsedData[0] || [],
+                rows: parsedData.slice(1) || [], //,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+              })
+            } else if (parsedData.headers && parsedData.rows) {
+              setTableData(parsedData)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error processing table data:', error)
+      }
+    }
+  }, [attachment])
+
+  const renderDownloadButton = () => (
+    <Button
+      variant='primary'
+      className='mt-2'
+      href={`data:${attachment.contentType};base64,${attachment.data}`}
+      download={attachment.filename}
+    >
+      Download {attachment.filename}
     </Button>
   )
 
-  const renderContent = () => {
-    if (attachment.isImage) {
-      return (
-        <div className='relative w-full h-48'>
-          <img
+  if (!attachment) return null
+
+  // Handle image attachments
+  if (attachment.isImage) {
+    return (
+      <div className='attachment-wrapper'>
+        <div
+          className='position-relative'
+          style={{ width: '100%', height: '12rem' }}
+        >
+          <Image
             src={`data:${attachment.contentType};base64,${attachment.data}`}
             alt={attachment.filename}
-            className='object-contain w-full h-full'
+            style={{ objectFit: 'contain', width: '100%', height: '100%' }}
           />
         </div>
-      )
-    }
-
-    if (attachment.contentType === 'text/csv' && attachment.chartData) {
-      return <Chart data={attachment.chartData} />
-    }
-
-    if (
-      attachment.contentType ===
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ) {
-      return <ExcelViewer data={attachment.data} />
-    }
-
-    // Fallback for other file types
-    return (
-      <div className='flex items-center space-x-2'>
-        <Camera size={24} />
-        <span>{attachment.filename}</span>
+        {renderDownloadButton()}
       </div>
     )
   }
 
+  // Handle CSV and XLSX data
+  if (
+    [
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ].includes(attachment.contentType)
+  ) {
+    if (!tableData.headers.length) {
+      return (
+        <div>
+          <Alert variant='info'>No data available</Alert>
+          {renderDownloadButton()}
+        </div>
+      )
+    }
+
+    return (
+      <div>
+        <div style={{ overflowX: 'auto' }}>
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                {tableData.headers.map((header, index) => (
+                  <th key={index}>{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.rows.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {Array.isArray(row)
+                    ? row.map((cell, cellIndex) => (
+                        <td key={cellIndex}>{cell}</td>
+                      ))
+                    : tableData.headers.map((header, cellIndex) => (
+                        <td key={cellIndex}>{row[header]}</td>
+                      ))}
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+        {renderDownloadButton()}
+      </div>
+    )
+  }
+
+  // Fallback for other file types
   return (
-    <div className='attachment-wrapper space-y-2'>
-      {renderContent()}
-      {renderDownloadLink()}
+    <div>
+      <div className='d-flex align-items-center gap-2'>
+        <Camera size={24} />
+        <span>{attachment.filename}</span>
+      </div>
+      {renderDownloadButton()}
     </div>
   )
 }

@@ -14,24 +14,13 @@ export function socketHandlers(io) {
 
     socket.on('createMessage', async (data) => {
       const { userId, channelId, messageData } = data
-      if (!messageData.text || typeof messageData.text !== 'string') {
-        console.error('Invalid message data:', messageData)
-        socket.emit('error', 'Message text is required.')
-        return
-      }
-
       try {
-        console.log('Creating message:', messageData) // Debug log
         const message = await createMessage(userId, channelId, messageData)
-
-        // Emit to the client that sent the message
         socket.emit('messageCreated', message)
-
-        // Broadcast the message to all other clients except the sender
         socket.broadcast.emit('messageCreated', message)
       } catch (error) {
-        console.error('Error creating message:', error) // Log the error
-        socket.emit('error', 'Error creating message')
+        console.error('Error creating message:', error)
+        socket.emit('error', 'Error processing message attachment')
       }
     })
 
