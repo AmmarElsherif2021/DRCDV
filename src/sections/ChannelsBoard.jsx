@@ -3,16 +3,9 @@ import { listChannels, createChannel, getChannelById } from '../API/channels'
 import { getUsers } from '../API/users'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
-import {
-  Container,
-  Card,
-  Button,
-  ListGroupItem,
-  ListGroup,
-  Offcanvas,
-} from 'react-bootstrap'
+import { Container, Card, Button, Offcanvas } from 'react-bootstrap'
 import { CreateChannel } from '../Components/Channels/CreateChannel'
-import { ChannelCard } from '../Components/Channels/ChannelCard'
+//import { ChannelCard } from '../Components/Channels/ChannelCard'
 import { useChannel } from '../contexts/ChannelContext'
 import profileIcon from '../assets/profile.svg'
 import { User } from '../Components/User/User'
