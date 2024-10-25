@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "index.js"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "mongodb+srv://ammaralshareef2014:27.s4Nc77MivufK@firstcluster.bedp9ol.mongodb.net/?retryWrites=true&w=majority&appName=firstCluster",
+    "JWT_SECRET": "4331077"
+  }
+}
