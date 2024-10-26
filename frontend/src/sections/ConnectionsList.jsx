@@ -109,5 +109,3 @@ export const ConnectionsList = ({ channels, handleChannelClick }) => {
     </div>
   )
 }
-
-//export default ConnectionsList

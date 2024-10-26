@@ -134,7 +134,7 @@ export const ChatSpace = ({ channelId }) => {
         style={{
           backgroundColor: 'white',
           position: 'absolute',
-          padding: '3rem',
+          padding: '1rem',
           left: '8rem',
           display: 'flex',
           flexDirection: 'column',
@@ -144,7 +144,9 @@ export const ChatSpace = ({ channelId }) => {
         }}
       >
         <img src={sendGif} style={{ width: '15rem' }} />
-        <h1>Navigate to connections or channels and start messaging</h1>
+        <h1 style={{ fontSize: '3.2em' }}>
+          Navigate to connections or channels and start messaging
+        </h1>
       </div>
     )
   }
