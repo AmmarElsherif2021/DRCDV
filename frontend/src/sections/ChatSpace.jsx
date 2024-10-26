@@ -5,7 +5,7 @@ import {
   Container,
   Row,
   Col,
-  ListGroup,
+  //ListGroup,
   Spinner,
   Image,
   Dropdown,
@@ -16,6 +16,7 @@ import { getMessagesByChannelId } from '../API/messages.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useSocket } from '../contexts/SocketContext.jsx'
 import userAvatar from '../assets/profile.svg'
+import sendGif from '../assets/startSending.gif'
 import channelAvatar from '../assets/group-icon.svg'
 import { jwtDecode } from 'jwt-decode'
 import MessagingList from '../Components/Messages/MessageList.jsx'
@@ -127,6 +128,26 @@ export const ChatSpace = ({ channelId }) => {
   ) : (
     ''
   )
+  if (!channelId) {
+    return (
+      <div
+        style={{
+          backgroundColor: 'white',
+          position: 'absolute',
+          padding: '3rem',
+          left: '8rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '90vw',
+          height: '100%',
+        }}
+      >
+        <img src={sendGif} style={{ width: '15rem' }} />
+        <h1>Navigate to connections or channels and start messaging</h1>
+      </div>
+    )
+  }
 
   return (
     <Container fluid className='p-4'>
@@ -140,29 +161,6 @@ export const ChatSpace = ({ channelId }) => {
             currentUserId={userData.userId}
           />
           <CreateMessage channelId={channelId} sendMessage={sendMessage} />
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <ListGroup horizontal className='flex-wrap overflow-auto'>
-            {channelMembers.map(
-              (member) =>
-                member.user !== userData.userId && (
-                  <ListGroup.Item
-                    key={member.user}
-                    className='d-flex flex-column align-items-center mx-2'
-                  >
-                    <Image
-                      src={userAvatar}
-                      alt='User'
-                      roundedCircle
-                      style={{ width: '3rem' }}
-                    />
-                    <User id={member.user} />
-                  </ListGroup.Item>
-                ),
-            )}
-          </ListGroup>
         </Col>
       </Row>
     </Container>

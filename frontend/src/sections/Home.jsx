@@ -98,7 +98,11 @@ export function Home() {
               xs={12}
               md={10}
               className='flex-grow-1'
-              style={{ paddingLeft: '4rem' }}
+              style={{
+                paddingLeft: '4rem',
+
+                margin: 0,
+              }}
             >
               <ChatSpace channelId={selectedChannel} />
             </Col>
