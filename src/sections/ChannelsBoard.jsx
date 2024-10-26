@@ -1,34 +1,107 @@
+/* eslint-disable react/prop-types */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listChannels, createChannel, getChannelById } from '../API/channels'
 import { getUsers } from '../API/users'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
-import { Container, Card, Button, Offcanvas } from 'react-bootstrap'
+import { Card, Button, Offcanvas } from 'react-bootstrap'
 import { CreateChannel } from '../Components/Channels/CreateChannel'
-//import { ChannelCard } from '../Components/Channels/ChannelCard'
 import { useChannel } from '../contexts/ChannelContext'
-import profileIcon from '../assets/profile.svg'
-import { User } from '../Components/User/User'
 import { useState, useEffect } from 'react'
 
-//assets
+// Assets
 import createChannelIcon from '../assets/createGroup.svg'
 import connectionsIcon from '../assets/connections.svg'
 import channelsIcon from '../assets/channels.svg'
 import { ConnectionsList } from './ConnectionsList'
 import { ChannelsList } from './ChannelsList'
-//styles
+
+const sidebarStyle = {
+  width: '8rem',
+  height: '100vh',
+  borderRight: '3px solid #ddd',
+  backgroundColor: '#f8f9fa',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: '2rem 0',
+  position: 'fixed',
+}
+
 const iconDivStyle = {
   cursor: 'pointer',
   textAlign: 'center',
   marginBottom: '2rem',
-  marginTop: '2rem',
-  paddingTop: '2rem',
-  paddingBottom: '2rem',
   height: '5rem',
-  width: '12rem',
+  width: '4rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexDirection: 'column',
 }
-//ChannelBoard Component .............................................................................
+
+const SidebarContent = ({
+  handleShowConnections,
+  handleShowCreateChannel,
+  handleShowChannels,
+  hoveredButton,
+  handleMouseEnter,
+  handleMouseLeave,
+}) => (
+  <div style={sidebarStyle}>
+    <div
+      onMouseEnter={() => handleMouseEnter('connections')}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleShowConnections}
+      style={iconDivStyle}
+    >
+      {hoveredButton === 'connections' ? (
+        <span style={{ fontSize: '1em', fontWeight: 200, color: 'black' }}>
+          Connections
+        </span>
+      ) : (
+        <img
+          src={connectionsIcon}
+          alt='Connections'
+          style={{ width: '2rem' }}
+        />
+      )}
+    </div>
+    <div
+      onMouseEnter={() => handleMouseEnter('createChannel')}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleShowCreateChannel}
+      style={iconDivStyle}
+    >
+      {hoveredButton === 'createChannel' ? (
+        <span style={{ fontSize: '1em', fontWeight: 200, color: 'black' }}>
+          Create New Channel
+        </span>
+      ) : (
+        <img
+          src={createChannelIcon}
+          alt='Create Channel'
+          style={{ width: '2rem' }}
+        />
+      )}
+    </div>
+    <div
+      onMouseEnter={() => handleMouseEnter('channels')}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleShowChannels}
+      style={iconDivStyle}
+    >
+      {hoveredButton === 'channels' ? (
+        <span style={{ fontSize: '1em', fontWeight: 200, color: 'black' }}>
+          Channels
+        </span>
+      ) : (
+        <img src={channelsIcon} alt='Channels' style={{ width: '2rem' }} />
+      )}
+    </div>
+  </div>
+)
+
 export function ChannelsBoard() {
   const [token] = useAuth()
   const { setSelectedChannel, setChannelMessages, setChannelMembers } =
@@ -119,6 +192,16 @@ export function ChannelsBoard() {
   }
 
   const channels = channelsQuery.data ?? []
+  const offcanvasStyle = {
+    width: '8rem',
+    height: '100%',
+    padding: 0,
+    backgroundColor: '#f8f9fa',
+  }
+
+  if (!userData) {
+    return <div>Please log in to view your channels.</div>
+  }
 
   return (
     <div style={{ height: '100vh', overflowY: 'auto' }}>
@@ -142,122 +225,21 @@ export function ChannelsBoard() {
           </Button>
         </div>
       ) : (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            paddingTop: '5rem',
-            alignItems: 'center',
-            width: '20rem',
-          }}
-        >
-          <Card className='mb-4 text-center' style={{ width: '10rem' }}>
-            <Card.Body
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <img
-                src={profileIcon}
-                alt='Profile'
-                style={{ width: '5rem', borderRadius: '50%' }}
-              />
-              <User id={userData.userId} />
-            </Card.Body>
-          </Card>
-          <Container
-            className='p-4 bg-light'
-            style={{
-              width: '20vw',
-              borderRight: '3px solid #ddd',
-            }}
-          >
-            <div
-              onMouseEnter={() => handleMouseEnter('connections')}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleShowConnections}
-              style={iconDivStyle}
-            >
-              {hoveredButton === 'connections' ? (
-                <span
-                  style={{
-                    fontWeight: 'bold',
-                    color: 'black',
-                  }}
-                >
-                  Connections
-                </span>
-              ) : (
-                <img
-                  src={connectionsIcon}
-                  alt='Connections'
-                  style={{
-                    width: '3rem',
-                  }}
-                />
-              )}
-            </div>
-            <div
-              onMouseEnter={() => handleMouseEnter('createChannel')}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleShowCreateChannel}
-              style={iconDivStyle}
-            >
-              {hoveredButton === 'createChannel' ? (
-                <span
-                  style={{
-                    fontWeight: 'bold',
-                    color: 'black',
-                  }}
-                >
-                  Create New Channel
-                </span>
-              ) : (
-                <img
-                  src={createChannelIcon}
-                  alt='Create Channel'
-                  style={{
-                    width: '3rem',
-                  }}
-                />
-              )}
-            </div>
-            <div
-              onMouseEnter={() => handleMouseEnter('channels')}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleShowChannels}
-              style={iconDivStyle}
-            >
-              {hoveredButton === 'channels' ? (
-                <span
-                  style={{
-                    fontWeight: 'bold',
-                    color: 'black',
-                    paddingTop: '2rem',
-                    paddingBottom: '2rem',
-                  }}
-                >
-                  Channels
-                </span>
-              ) : (
-                <img
-                  src={channelsIcon}
-                  alt='Channels'
-                  style={{
-                    width: '3rem',
-                  }}
-                />
-              )}
-            </div>
-          </Container>
+        <>
+          <SidebarContent
+            handleShowConnections={handleShowConnections}
+            handleShowCreateChannel={handleShowCreateChannel}
+            handleShowChannels={handleShowChannels}
+            hoveredButton={hoveredButton}
+            handleMouseEnter={handleMouseEnter}
+            handleMouseLeave={handleMouseLeave}
+          />
 
           <Offcanvas
             show={showConnections}
             onHide={handleCloseConnections}
             placement='start'
-            style={{ paddingTop: '5rem' }}
+            style={{ ...offcanvasStyle, width: '20rem' }}
           >
             <Offcanvas.Header closeButton>
               <Offcanvas.Title>Connections</Offcanvas.Title>
@@ -274,7 +256,7 @@ export function ChannelsBoard() {
             show={showCreateChannel}
             onHide={handleCloseCreateChannel}
             placement='start'
-            style={{ paddingTop: '5rem' }}
+            style={{ ...offcanvasStyle, width: '20rem' }}
           >
             <Offcanvas.Header closeButton>
               <Offcanvas.Title>Create New Channel</Offcanvas.Title>
@@ -290,7 +272,7 @@ export function ChannelsBoard() {
             show={showChannels}
             onHide={handleCloseChannels}
             placement='start'
-            style={{ paddingTop: '5rem' }}
+            style={{ ...offcanvasStyle, width: '20rem' }}
           >
             <Offcanvas.Header closeButton>
               <Offcanvas.Title>Channels</Offcanvas.Title>
@@ -306,7 +288,7 @@ export function ChannelsBoard() {
               )}
             </Offcanvas.Body>
           </Offcanvas>
-        </div>
+        </>
       )}
     </div>
   )

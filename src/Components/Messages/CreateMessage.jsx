@@ -51,7 +51,6 @@ export function CreateMessage({ channelId }) {
     }
   }, [socket, handleMessageCreated])
 
-  // Creation in db
   const createMessageMutation = useMutation({
     mutationFn: () => {
       if (socket && userId && !sending) {
@@ -102,7 +101,6 @@ export function CreateMessage({ channelId }) {
       .catch((error) => console.error('Error reading files:', error))
   }
 
-  // display msgs
   return (
     <Container className='p-4'>
       <Form onSubmit={(e) => handleSubmit(e)}>
@@ -133,6 +131,7 @@ export function CreateMessage({ channelId }) {
             type='submit'
             disabled={!text || sending || createMessageMutation.isPending}
             className='ml-2'
+            style={{ backgroundColor: 'black', color: 'white' }}
           >
             {sending ? 'Sending...' : 'Send'}
           </Button>

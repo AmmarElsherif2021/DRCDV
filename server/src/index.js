@@ -13,13 +13,14 @@ const server = createServer(app)
 const io = new SocketIOServer(server, {
   cors: {
     origin:
-      process.env.NODE_ENV === 'production'
-        ? [
-            'https://drcdv.vercel.app',
-            'https://drcdv-git-master-ammarelsherifs-projects.vercel.app',
-            'https://drcdv-ammarelsherifs-projects.vercel.app',
-          ]
-        : 'http://localhost:5173',
+      // process.env.NODE_ENV === 'production'
+      //   ? [
+      //       'https://drcdv.vercel.app',
+      //       'https://drcdv-git-master-ammarelsherifs-projects.vercel.app',
+      //       'https://drcdv-ammarelsherifs-projects.vercel.app',
+      //     ]
+      //   :
+      'http://localhost:5173',
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

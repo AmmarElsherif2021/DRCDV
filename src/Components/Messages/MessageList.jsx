@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
 import { useRef, useEffect } from 'react'
 import { ListGroup, Image } from 'react-bootstrap'
-//import { Attachment } from './DataVisuals'
 import userAvatar from '../../assets/profile.svg'
-import { EnhancedAttachment } from './DataVisuals'
+import EnhancedAttachment from './DataVisuals'
 
 const Message = ({ message, isCurrentUser }) => (
   <ListGroup.Item
@@ -20,8 +19,12 @@ const Message = ({ message, isCurrentUser }) => (
         style={{ width: '2.5rem', height: '2.5rem' }}
       />
       <div
-        className={`mx-2 p-3 rounded ${isCurrentUser ? 'bg-primary text-white' : 'bg-light text-dark'}`}
-        style={{ wordBreak: 'break-word' }}
+        className='mx-2 p-3 rounded'
+        style={{
+          backgroundColor: isCurrentUser ? '#1CCB8F' : 'black',
+          color: isCurrentUser ? 'black' : 'white',
+          wordBreak: 'break-word',
+        }}
       >
         <p className='mb-1'>{message.text}</p>
         {message.attachments?.map((attachment, i) => (
@@ -40,7 +43,6 @@ const Message = ({ message, isCurrentUser }) => (
 
 export const MessageList = ({ messages, currentUserId }) => {
   const listRef = useRef(null)
-
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight

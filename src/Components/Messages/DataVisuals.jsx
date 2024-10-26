@@ -1,376 +1,299 @@
 /* eslint-disable react/prop-types */
-import { useRef, useEffect, useState } from 'react'
-import { Image, Button, Table, Alert } from 'react-bootstrap'
+import { useState } from 'react'
+import { Image, Button, Table, Card, ButtonGroup } from 'react-bootstrap'
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
 
-import { Camera } from 'lucide-react'
-import * as d3 from 'd3'
-import * as XLSX from 'xlsx'
-
-import { Document, Page } from 'react-pdf'
-export const Chart = ({ data }) => {
-  const chartRef = useRef(null)
-
-  useEffect(() => {
-    if (chartRef.current && data.labels && data.values) {
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 }
-      const width = 400 - margin.left - margin.right
-      const height = 300 - margin.top - margin.bottom
-
-      d3.select(chartRef.current).selectAll('*').remove()
-
-      const svg = d3
-        .select(chartRef.current)
-        .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`)
-
-      const x = d3.scaleBand().range([0, width]).padding(0.1)
-      const y = d3.scaleLinear().range([height, 0])
-
-      x.domain(data.labels)
-      y.domain([0, d3.max(data.values)])
-
-      svg
-        .selectAll('.bar')
-        .data(data.values)
-        .enter()
-        .append('rect')
-        .attr('class', 'bar')
-        .attr('x', (d, i) => x(data.labels[i]))
-        .attr('width', x.bandwidth())
-        .attr('y', (d) => y(d))
-        .attr('height', (d) => height - y(d))
-        .attr('fill', 'steelblue')
-
-      svg
-        .append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(x))
-
-      svg.append('g').call(d3.axisLeft(y))
-    }
-  }, [data])
-
-  return <div ref={chartRef}></div>
+const MIME_TYPES = {
+  CSV: 'text/csv',
+  IMAGE: 'image/',
 }
 
-export const ExcelViewer = ({ data }) => {
-  const [sheets, setSheets] = useState([])
-  const [activeSheet, setActiveSheet] = useState(0)
-  const [tableData, setTableData] = useState({ headers: [], rows: [] })
+const CHART_TYPES = {
+  BAR: 'bar',
+  LINE: 'line',
+  PIE: 'pie',
+}
 
-  useEffect(() => {
-    if (data) {
-      try {
-        if (typeof data === 'string') {
-          const workbook = XLSX.read(data, { type: 'base64' })
-          const sheetsData = workbook.SheetNames.map((name) => {
-            const sheet = workbook.Sheets[name]
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 })
-            return {
-              name,
-              headers: jsonData[0] || [],
-              rows: jsonData.slice(1) || [],
-            }
-          })
-          setSheets(sheetsData)
-          if (sheetsData.length > 0) {
-            setTableData({
-              headers: sheetsData[0].headers,
-              rows: sheetsData[0].rows,
-            })
-          }
-        } else if (data.labels && data.values) {
-          setSheets([
-            {
-              name: 'Sheet1',
-              headers: data.labels,
-              rows: data.values,
-            },
-          ])
-          setTableData({
-            headers: data.labels,
-            rows: data.values,
-          })
-        }
-      } catch (error) {
-        console.error('Error processing Excel data:', error)
-        setSheets([])
-        setTableData({ headers: [], rows: [] })
-      }
-    }
-  }, [data])
+const COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884d8',
+  '#82ca9d',
+]
 
-  const handleSheetChange = (index) => {
-    setActiveSheet(index)
-    setTableData({
-      headers: sheets[index].headers,
-      rows: sheets[index].rows,
-    })
+const DownloadButton = ({ contentType, data, filename }) => (
+  <Button
+    variant='outline-primary'
+    href={`data:${contentType};base64,${data}`}
+    download={filename}
+    className='d-flex align-items-center gap-2'
+  >
+    <svg
+      width='20'
+      height='20'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    >
+      <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+      <polyline points='7 10 12 15 17 10' />
+      <line x1='12' y1='15' x2='12' y2='3' />
+    </svg>
+    Download
+  </Button>
+)
+
+const ChartView = ({ data }) => {
+  const [chartType, setChartType] = useState(CHART_TYPES.BAR)
+
+  const chartData =
+    data?.labels?.map((label, index) => ({
+      name: label,
+      value: data.values[index],
+    })) || []
+
+  const ChartComponents = {
+    [CHART_TYPES.BAR]: (
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='name' />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey='value' fill='#8884d8' />
+      </BarChart>
+    ),
+    [CHART_TYPES.LINE]: (
+      <LineChart data={chartData}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='name' />
+        <YAxis />
+        <Tooltip />
+        <Line type='monotone' dataKey='value' stroke='#8884d8' />
+      </LineChart>
+    ),
+    [CHART_TYPES.PIE]: (
+      <PieChart>
+        <Pie
+          data={chartData}
+          dataKey='value'
+          nameKey='name'
+          cx='50%'
+          cy='50%'
+          outerRadius={150}
+          label
+        >
+          {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+      </PieChart>
+    ),
   }
 
-  if (!data)
-    return (
-      <div className='p-4 text-center text-gray-500'>
-        No Excel data available
-      </div>
-    )
+  const chartIcons = {
+    [CHART_TYPES.BAR]: (
+      <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+      >
+        <rect x='3' y='3' width='18' height='18' rx='2' />
+        <path d='M8 15v-5m4 5V8m4 7v-3' />
+      </svg>
+    ),
+    [CHART_TYPES.LINE]: (
+      <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+      >
+        <path d='M3 12h18M3 6h18M3 18h18' />
+      </svg>
+    ),
+    [CHART_TYPES.PIE]: (
+      <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+      >
+        <path d='M12 2v20M2 12h20' />
+        <circle cx='12' cy='12' r='10' />
+      </svg>
+    ),
+  }
 
   return (
-    <div className='w-full'>
-      {sheets.length > 1 && (
-        <div className='mb-4 flex gap-2'>
-          {sheets.map((sheet, index) => (
-            <button
-              key={sheet.name}
-              onClick={() => handleSheetChange(index)}
-              className={`px-3 py-1 text-sm rounded-md transition-colors
-                ${
-                  activeSheet === index
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white text-blue-500 border border-blue-500 hover:bg-blue-50'
-                }`}
+    <Card className='mb-4'>
+      <Card.Header className='d-flex justify-content-between align-items-center'>
+        <ButtonGroup>
+          {Object.entries(chartIcons).map(([type, icon]) => (
+            <Button
+              key={type}
+              variant={chartType === type ? 'primary' : 'outline-primary'}
+              onClick={() => setChartType(type)}
+              className='d-flex align-items-center gap-2'
             >
-              {sheet.name}
-            </button>
+              {icon}
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </Button>
           ))}
-        </div>
-      )}
+        </ButtonGroup>
+      </Card.Header>
+      <Card.Body>
+        <ResponsiveContainer width='100%' height={300}>
+          {ChartComponents[chartType]}
+        </ResponsiveContainer>
+      </Card.Body>
+    </Card>
+  )
+}
 
-      <div className='w-full overflow-x-auto'>
-        <table className='min-w-full border-collapse'>
-          <thead>
-            <tr className='bg-gray-50'>
-              {tableData.headers.map((header, index) => (
-                <th
-                  key={index}
-                  className='px-4 py-2 border border-gray-200 text-left text-sm font-medium text-gray-700'
-                >
-                  {header}
-                </th>
+const DataTable = ({ data }) => {
+  if (!data?.labels || !data?.values) return null
+  return (
+    <div
+      className='table-responsive'
+      style={{ maxHeight: '40vh', maxWidth: '40vw', overflowY: 'auto' }}
+    >
+      <Table striped bordered hover className='mb-0'>
+        <thead>
+          <tr>
+            {data.labels.map((header, index) => (
+              <th key={index} className='position-sticky top-0 bg-white'>
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.values.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {row.map((value, cellIndex) => (
+                <td key={cellIndex}>{value?.toString()}</td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {tableData.rows.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-              >
-                {Array.isArray(row)
-                  ? row.map((cell, cellIndex) => (
-                      <td
-                        key={cellIndex}
-                        className='px-4 py-2 border border-gray-200 text-sm text-gray-900'
-                      >
-                        {cell?.toString()}
-                      </td>
-                    ))
-                  : tableData.headers.map((header, cellIndex) => (
-                      <td
-                        key={cellIndex}
-                        className='px-4 py-2 border border-gray-200 text-sm text-gray-900'
-                      >
-                        {row[header]?.toString()}
-                      </td>
-                    ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </Table>
     </div>
   )
 }
 
-export const Attachment = ({ attachment }) => {
-  if (attachment.isImage) {
-    return (
-      <Image
-        src={`data:${attachment.contentType};base64,${attachment.data}`}
-        alt={attachment.filename}
-        style={{ maxWidth: '100%', height: 'auto' }}
-        fluid
-      />
-    )
-  }
+const FileIcon = () => (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    stroke='currentColor'
+    strokeWidth='2'
+  >
+    <path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' />
+    <polyline points='14 2 14 8 20 8' />
+  </svg>
+)
 
-  if (attachment.contentType === 'text/csv') {
-    return attachment.chartData ? (
-      <Chart data={attachment.chartData} />
-    ) : (
-      <div>Error: No chart data available for CSV</div>
-    )
-  }
-
-  if (
-    attachment.contentType ===
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ) {
-    return <ExcelViewer data={attachment.data} />
-  }
-
-  if (attachment.contentType === 'application/pdf') {
-    return (
-      <div>
-        <a
-          href={`data:application/pdf;base64,${attachment.data}`}
-          download={attachment.filename}
-          className='btn btn-primary'
-        >
-          Download PDF
-        </a>
-        <Document file={`data:application/pdf;base64,${attachment.data}`}>
-          <Page pageNumber={1} />
-        </Document>
-      </div>
-    )
-  }
-
-  // Fallback for other file types
-  return (
-    <a
-      href={`data:${attachment.contentType};base64,${attachment.data}`}
-      download={attachment.filename}
-      className='btn btn-secondary'
-    >
-      Download {attachment.filename}
-    </a>
-  )
-}
-
-export const EnhancedAttachment = ({ attachment }) => {
-  const [tableData, setTableData] = useState({ headers: [], rows: [] })
-
-  useEffect(() => {
-    if (attachment) {
-      try {
-        if (attachment.contentType === 'text/csv') {
-          if (attachment.chartData) {
-            setTableData({
-              headers: attachment.chartData.labels,
-              rows: attachment.chartData.values.map((value, index) => ({
-                [attachment.chartData.labels[0]]:
-                  attachment.chartData.labels[index],
-                [attachment.chartData.labels[1]]: value,
-              })),
-            })
-          }
-        } else if (
-          attachment.contentType ===
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ) {
-          if (attachment.data && typeof attachment.data === 'object') {
-            const parsedData =
-              typeof attachment.data === 'string'
-                ? JSON.parse(attachment.data)
-                : attachment.data
-
-            if (Array.isArray(parsedData)) {
-              setTableData({
-                headers: parsedData[0] || [],
-                rows: parsedData.slice(1) || [], //,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-              })
-            } else if (parsedData.headers && parsedData.rows) {
-              setTableData(parsedData)
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error processing table data:', error)
-      }
-    }
-  }, [attachment])
-
-  const renderDownloadButton = () => (
-    <Button
-      variant='primary'
-      className='mt-2'
-      href={`data:${attachment.contentType};base64,${attachment.data}`}
-      download={attachment.filename}
-    >
-      Download {attachment.filename}
-    </Button>
-  )
+const EnhancedAttachment = ({ attachment }) => {
+  const [showPlot, setShowPlot] = useState(false)
 
   if (!attachment) return null
 
   // Handle image attachments
-  if (attachment.isImage) {
+  if (attachment.contentType?.startsWith(MIME_TYPES.IMAGE)) {
     return (
-      <div className='attachment-wrapper'>
-        <div
-          className='position-relative'
-          style={{ width: '100%', height: '12rem' }}
-        >
+      <div className='mb-3'>
+        <div className='position-relative' style={{ height: '12rem' }}>
           <Image
             src={`data:${attachment.contentType};base64,${attachment.data}`}
             alt={attachment.filename}
-            style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+            className='h-100 w-100'
+            style={{ objectFit: 'contain' }}
           />
         </div>
-        {renderDownloadButton()}
+        <div className='mt-3'>
+          <DownloadButton {...attachment} />
+        </div>
       </div>
     )
   }
 
-  // Handle CSV and XLSX data
-  if (
-    [
-      'text/csv',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ].includes(attachment.contentType)
-  ) {
-    if (!tableData.headers.length) {
-      return (
-        <div>
-          <Alert variant='info'>No data available</Alert>
-          {renderDownloadButton()}
-        </div>
-      )
-    }
-
+  // Handle CSV attachments with chart data
+  if (attachment.contentType === MIME_TYPES.CSV && attachment.chartData) {
     return (
-      <div>
-        <div style={{ overflowX: 'auto' }}>
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                {tableData.headers.map((header, index) => (
-                  <th key={index}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {tableData.rows.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {Array.isArray(row)
-                    ? row.map((cell, cellIndex) => (
-                        <td key={cellIndex}>{cell}</td>
-                      ))
-                    : tableData.headers.map((header, cellIndex) => (
-                        <td key={cellIndex}>{row[header]}</td>
-                      ))}
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+      <div className='mb-3'>
+        <div className='d-flex justify-content-between align-items-center mb-3'>
+          <Button
+            variant='outline-primary'
+            onClick={() => setShowPlot(!showPlot)}
+            className='d-flex align-items-center gap-2'
+          >
+            <svg
+              width='20'
+              height='20'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+            >
+              {showPlot ? (
+                <path d='M19 9l-7 7-7-7' />
+              ) : (
+                <path d='M9 18l6-6-6-6' />
+              )}
+            </svg>
+            {showPlot ? 'Hide Charts' : 'Show Charts'}
+          </Button>
+          <DownloadButton {...attachment} />
         </div>
-        {renderDownloadButton()}
+
+        {showPlot && <ChartView data={attachment.chartData} />}
+
+        <Card>
+          <Card.Header>Data Table</Card.Header>
+          <Card.Body className='p-0'>
+            <DataTable data={attachment.chartData} />
+          </Card.Body>
+        </Card>
       </div>
     )
   }
 
-  // Fallback for other file types
+  // Default placeholder for other file types
   return (
-    <div>
-      <div className='d-flex align-items-center gap-2'>
-        <Camera size={24} />
-        <span>{attachment.filename}</span>
-      </div>
-      {renderDownloadButton()}
+    <div className='d-flex align-items-center gap-2 p-3 border rounded'>
+      <FileIcon />
+      <span className='flex-grow-1'>{attachment.filename}</span>
+      <DownloadButton {...attachment} />
     </div>
   )
 }
+
+export default EnhancedAttachment

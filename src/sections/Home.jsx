@@ -8,9 +8,9 @@ import { jwtDecode } from 'jwt-decode'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Link } from 'react-router-dom'
 import sidebar from '../assets/sidebar.svg'
+
 export function Home() {
   const [token] = useAuth()
-
   const decodeToken = (token) => {
     if (!token || typeof token !== 'string') {
       console.error('Invalid token:', 'Token must be a valid string')
@@ -27,10 +27,8 @@ export function Home() {
   }
 
   const userData = decodeToken(token)
-
   const { isVisible, toggleVisibility } = useUserHome()
-  const { selectedChannel, setSelectedChannel } = useChannel() // Use the context
-
+  const { selectedChannel } = useChannel()
   return (
     <>
       {!userData ? (
@@ -62,42 +60,36 @@ export function Home() {
         <Container
           fluid
           className='bg-light min-vh-100'
-          style={{ width: '100vw' }}
+          style={{ width: '100vw', paddingLeft: 0 }}
         >
           <Header toggleChannelsBoard={toggleVisibility} />
-
-          <Col>
-            {' '}
-            {!isVisible && (
-              <Button
-                variant='outline'
-                className='d-block d-md-none mb-3'
-                onClick={toggleVisibility}
-                style={{
-                  position: 'absolute',
-                  top: '10rem',
-                  width: '4rem',
-                  height: '4rem',
-                  zIndex: 1000,
-                  border: 'none',
-                }}
-              >
-                <img
-                  onClick={toggleVisibility}
-                  src={sidebar}
-                  style={{ width: '3rem' }}
-                />
-              </Button>
-            )}
-          </Col>
-
-          <Row className='d-flex flex-column flex-md-row'>
-            <Col xs={12} md={3} className='mb-3 mb-md-0 d-none d-md-block'>
-              <ChannelsBoard
-                onChannelClick={(channelId) => setSelectedChannel(channelId)}
+          {!isVisible && (
+            <Button
+              variant='outline'
+              className='d-block d-md-none'
+              onClick={toggleVisibility}
+              style={{
+                position: 'fixed',
+                top: '1rem',
+                left: '1rem',
+                width: '4rem',
+                height: '4rem',
+                zIndex: 1000,
+                border: 'none',
+              }}
+            >
+              <img
+                src={sidebar}
+                alt='Toggle Sidebar'
+                style={{ width: '3rem' }}
               />
+            </Button>
+          )}
+          <Row className='g-0 mt-5'>
+            <Col xs={12} md={2} className='d-none d-md-block'>
+              <ChannelsBoard />
             </Col>
-            <Col xs={12} md={9} className='flex-grow-1'>
+            <Col xs={12} md={10} className='flex-grow-1'>
               <ChatSpace channelId={selectedChannel} />
             </Col>
           </Row>
@@ -105,15 +97,15 @@ export function Home() {
             show={isVisible}
             onHide={toggleVisibility}
             placement='start'
-            style={{ width: '55%' }}
+            style={{
+              width: '16.6667%', // Same width as Col md={2}
+              height: '100vh',
+              padding: 0,
+              backgroundColor: '#f8f9fa',
+            }}
           >
-            <Offcanvas.Header closeButton>
-              <Offcanvas.Title>Channels Board</Offcanvas.Title>
-            </Offcanvas.Header>
-            <Offcanvas.Body>
-              <ChannelsBoard
-                onChannelClick={(channelId) => setSelectedChannel(channelId)}
-              />
+            <Offcanvas.Body className='p-0'>
+              <ChannelsBoard />
             </Offcanvas.Body>
           </Offcanvas>
         </Container>

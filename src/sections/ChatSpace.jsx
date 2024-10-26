@@ -96,7 +96,6 @@ export const ChatSpace = ({ channelId }) => {
       <Row>
         <Col>
           <h2>{channelTitle}</h2>
-          <hr />
           <ListGroup
             style={{
               display: 'flex',
