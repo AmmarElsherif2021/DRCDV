@@ -81,7 +81,12 @@ export function Home() {
               <img
                 src={sidebar}
                 alt='Toggle Sidebar'
-                style={{ width: '3rem' }}
+                style={{
+                  width: '3rem',
+                  position: 'fixed',
+                  top: '5rem',
+                  left: 0,
+                }}
               />
             </Button>
           )}
@@ -89,7 +94,12 @@ export function Home() {
             <Col xs={12} md={2} className='d-none d-md-block'>
               <ChannelsBoard />
             </Col>
-            <Col xs={12} md={10} className='flex-grow-1'>
+            <Col
+              xs={12}
+              md={10}
+              className='flex-grow-1'
+              style={{ paddingLeft: '4rem' }}
+            >
               <ChatSpace channelId={selectedChannel} />
             </Col>
           </Row>

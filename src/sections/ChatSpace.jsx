@@ -1,15 +1,25 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Container, Row, Col, ListGroup, Spinner, Image } from 'react-bootstrap'
+import {
+  Container,
+  Row,
+  Col,
+  ListGroup,
+  Spinner,
+  Image,
+  Dropdown,
+} from 'react-bootstrap'
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
 import { getMessagesByChannelId } from '../API/messages.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useSocket } from '../contexts/SocketContext.jsx'
 import userAvatar from '../assets/profile.svg'
+import channelAvatar from '../assets/group-icon.svg'
 import { jwtDecode } from 'jwt-decode'
 import MessagingList from '../Components/Messages/MessageList.jsx'
+import { User } from '../Components/User/User.jsx'
 
 export const ChatSpace = ({ channelId }) => {
   const [token] = useAuth()
@@ -46,10 +56,8 @@ export const ChatSpace = ({ channelId }) => {
   })
 
   useEffect(() => {
-    if (channelData) {
-      if (channelData.members) {
-        setChannelMembers(channelData.members)
-      }
+    if (channelData && channelData.members) {
+      setChannelMembers(channelData.members)
     }
   }, [channelData])
 
@@ -64,9 +72,7 @@ export const ChatSpace = ({ channelId }) => {
       const handleNewMessage = (msg) => {
         setChannelMessages((prevMessages) => [...prevMessages, msg])
       }
-
       socket.on('messageCreated', handleNewMessage)
-
       return () => {
         socket.off('messageCreated', handleNewMessage)
       }
@@ -83,57 +89,82 @@ export const ChatSpace = ({ channelId }) => {
     }
   }
 
-  if (isChannelLoading || isMessagesLoading)
+  if (isChannelLoading || isMessagesLoading) {
     return <Spinner animation='border' role='status' />
+  }
 
-  const channelTitle = channelData?.title
-    ? channelData.title.split(',').filter((x) => x !== userData.userId)[0] ||
-      userData.userId
-    : ''
+  const channelTitle = channelData?.title ? (
+    <div className='d-flex flex-row align-items-center'>
+      {channelMembers.length > 2 ? (
+        <Image src={channelAvatar} alt='Channel' style={{ width: '3rem' }} />
+      ) : (
+        <Image src={userAvatar} alt='User' style={{ width: '3rem' }} />
+      )}
+      <Dropdown>
+        <Dropdown.Toggle variant='link' id='dropdown-basic'>
+          {(
+            <User
+              id={
+                channelData.title
+                  .split(',')
+                  .filter((x) => x !== userData.userId)[0]
+              }
+            />
+          ) || 'Channel Members'}
+        </Dropdown.Toggle>
+        <Dropdown.Menu>
+          {channelMembers.map(
+            (member) =>
+              member.user !== userData.userId && (
+                <Dropdown.Item key={member.user}>
+                  <User id={member.user} />
+                </Dropdown.Item>
+              ),
+          )}
+        </Dropdown.Menu>
+      </Dropdown>
+    </div>
+  ) : (
+    ''
+  )
 
   return (
-    <Container className='p-4'>
+    <Container fluid className='p-4'>
       <Row>
         <Col>
-          <h2>{channelTitle}</h2>
-          <ListGroup
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              overflowX: 'auto',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {channelMembers.length > 2 &&
-              channelMembers.map(
-                (member) =>
-                  member.user !== userData.userId && (
-                    <ListGroup.Item
-                      key={member.user}
-                      style={{ flex: '0 0 auto', marginRight: '1rem' }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Image src={userAvatar} style={{ width: '3rem' }} />
-                        {member.username}
-                      </div>
-                    </ListGroup.Item>
-                  ),
-              )}
-          </ListGroup>
-          <hr />
+          <div className='d-flex justify-content-between align-items-center mb-3'>
+            {channelTitle}
+          </div>
           <MessagingList
             messages={channelMessages}
             currentUserId={userData.userId}
           />
+          <CreateMessage channelId={channelId} sendMessage={sendMessage} />
         </Col>
       </Row>
-      <CreateMessage channelId={channelId} sendMessage={sendMessage} />
+      <Row>
+        <Col>
+          <ListGroup horizontal className='flex-wrap overflow-auto'>
+            {channelMembers.map(
+              (member) =>
+                member.user !== userData.userId && (
+                  <ListGroup.Item
+                    key={member.user}
+                    className='d-flex flex-column align-items-center mx-2'
+                  >
+                    <Image
+                      src={userAvatar}
+                      alt='User'
+                      roundedCircle
+                      style={{ width: '3rem' }}
+                    />
+                    <User id={member.user} />
+                  </ListGroup.Item>
+                ),
+            )}
+          </ListGroup>
+        </Col>
+      </Row>
     </Container>
   )
 }
