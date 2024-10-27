@@ -220,7 +220,6 @@ const FileIcon = () => (
     <polyline points='14 2 14 8 20 8' />
   </svg>
 )
-
 const EnhancedAttachment = ({ attachment }) => {
   const [showPlot, setShowPlot] = useState(false)
 
@@ -230,12 +229,15 @@ const EnhancedAttachment = ({ attachment }) => {
   if (attachment.contentType?.startsWith(MIME_TYPES.IMAGE)) {
     return (
       <div className='mb-3'>
-        <div className='position-relative' style={{ height: '12rem' }}>
+        <div
+          className='position-relative'
+          style={{ height: 'auto', width: '100%' }}
+        >
           <Image
             src={`data:${attachment.contentType};base64,${attachment.data}`}
             alt={attachment.filename}
-            className='h-100 w-100'
-            style={{ objectFit: 'contain' }}
+            className='w-100 h-auto'
+            style={{ objectFit: 'contain', maxWidth: '100%', height: 'auto' }}
           />
         </div>
         <div className='mt-3'>
@@ -273,9 +275,7 @@ const EnhancedAttachment = ({ attachment }) => {
           </Button>
           <DownloadButton {...attachment} />
         </div>
-
         {showPlot && <ChartView data={attachment.chartData} />}
-
         <Card>
           <Card.Header>Data Table</Card.Header>
           <Card.Body className='p-0'>

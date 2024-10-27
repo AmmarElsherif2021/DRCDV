@@ -16,7 +16,7 @@ const Message = ({ message, isCurrentUser }) => (
         src={userAvatar}
         alt={message.sender.username}
         roundedCircle
-        style={{ width: '2.5rem', height: '2.5rem' }}
+        style={{ width: '4.5rem', height: '2.5rem' }}
       />
       <div
         className='mx-2 p-3 rounded'
