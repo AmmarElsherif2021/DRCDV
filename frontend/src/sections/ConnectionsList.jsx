@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-import { ListGroup, Image, Badge } from 'react-bootstrap'
+import { ListGroup, Image } from 'react-bootstrap'
 import { User } from '../Components/User/User'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
@@ -87,18 +87,6 @@ export const ConnectionsList = ({ channels, handleChannelClick }) => {
                     <div className='text-truncate' style={{ maxWidth: '70%' }}>
                       <User id={otherUserId} />
                     </div>
-                    {/* Example: Unread message indicator */}
-                    {Math.random() > 0.7 && (
-                      <Badge bg='primary' pill style={{ fontSize: '0.7rem' }}>
-                        new
-                      </Badge>
-                    )}
-                  </div>
-                  <div
-                    className='text-muted small text-truncate'
-                    style={{ fontSize: '0.85rem' }}
-                  >
-                    Click to start chatting
                   </div>
                 </div>
               </div>
