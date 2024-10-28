@@ -1,16 +1,32 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    hmr: true,
+    proxy: {
+      '/api': {
+        target: import.meta.env.VITE_BACKEND_URL,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: import.meta.env.VITE_SOCKET_HOST,
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
   },
-  resolve: {
-    alias: {
-      // eslint-disable-next-line no-undef
-      '@': path.resolve(__dirname, './src'),
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
     },
   },
 })
