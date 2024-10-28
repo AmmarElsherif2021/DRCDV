@@ -1,0 +1,4 @@
+[variables]
+DATABASE_URL = "mongodb+srv://ammar:Q=Ds*(T1-T2)@cluster0.i96cv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+JWT_SECRET = "4331077"
+PORT = "3001"
