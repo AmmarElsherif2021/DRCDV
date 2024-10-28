@@ -9,18 +9,32 @@ import {
 } from '../services/messages.js'
 
 export function socketHandlers(io) {
+  const messageCache = new Set()
   io.on('connection', (socket) => {
     console.log('A user connected')
 
     socket.on('createMessage', async (data) => {
       const { userId, channelId, messageData } = data
+
+      // Check if this message was recently processed
+      const messageKey = `${messageData.id}-${userId}-${channelId}`
+      if (messageCache.has(messageKey)) {
+        return // Skip if message was recently processed
+      }
+
       try {
+        messageCache.add(messageKey)
+        // Remove from cache after 5 seconds
+        setTimeout(() => messageCache.delete(messageKey), 5000)
+
         const message = await createMessage(userId, channelId, messageData)
-        socket.emit('messageCreated', message)
-        socket.broadcast.emit('messageCreated', message)
+
+        // Emit to all clients in one go, including sender
+        io.emit('messageCreated', message)
       } catch (error) {
         console.error('Error creating message:', error)
-        socket.emit('error', 'Error processing message attachment')
+        socket.emit('error', 'Error processing message')
+        messageCache.delete(messageKey)
       }
     })
 

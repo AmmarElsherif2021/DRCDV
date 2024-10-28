@@ -28,10 +28,10 @@ const startServer = async () => {
     if (!process.env.VERCEL) {
       // Start server normally
       const PORT = process.env.PORT || 3001
-      server.listen(PORT, () => {
-        console.info(`Server running on http://localhost:${PORT}`)
-      })
-    }
+
+      server.listen(port, '0.0.0.0', () => {
+          console.log(`Server is running on port ${port}`);
+      });
 
     io.on('connection', (socket) => {
       console.log('a user connected')
