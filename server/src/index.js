@@ -24,25 +24,19 @@ export default app
 const startServer = async () => {
   try {
     await initDatabase()
-
-    if (!process.env.VERCEL) {
-      // Start server normally
-      const PORT = process.env.PORT || 3001
-
-      server.listen(port, '0.0.0.0', () => {
-          console.log(`Server is running on port ${port}`);
-      });
+    const PORT = process.env.PORT || 3001
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`)
+    })
 
     io.on('connection', (socket) => {
       console.log('a user connected')
       socket.on('disconnect', () => {
         console.log('a user disconnected')
       })
-      // Apply socket handlers
       socketHandlers(io, socket)
     })
 
-    // Graceful shutdown handlers
     process.on('SIGINT', gracefulShutdown)
     process.on('SIGTERM', gracefulShutdown)
   } catch (err) {
