@@ -1,10 +1,10 @@
-/* eslint-disable no-undef */
 import { app } from './app.js'
 import { initDatabase } from './db/init.js'
 import dotenv from 'dotenv'
 import { createServer } from 'http'
 import { Server as SocketIOServer } from 'socket.io'
 import { socketHandlers } from './socket/socketIoHandler.js'
+import { allowedOrigins } from './config/cors.js'
 
 dotenv.config()
 
@@ -29,13 +29,7 @@ const startServer = async () => {
       console.log(`Server is running on port ${PORT}`)
     })
 
-    io.on('connection', (socket) => {
-      console.log('a user connected')
-      socket.on('disconnect', () => {
-        console.log('a user disconnected')
-      })
-      socketHandlers(io, socket)
-    })
+    socketHandlers(io) // Modified to pass only io since socket is handled in socketHandlers
 
     process.on('SIGINT', gracefulShutdown)
     process.on('SIGTERM', gracefulShutdown)

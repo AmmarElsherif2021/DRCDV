@@ -1,3 +1,4 @@
+import { allowedOrigins } from './config/cors.js'
 import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
@@ -8,17 +9,9 @@ import { channelsRoutes } from './routes/channel.js'
 
 const app = express()
 
-// Added Vercel
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://drcdv-ammarelsherifs-projects.vercel.app',
-  'https://drcdv.vercel.app',
-]
-
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests) IMPOTANT!!
       if (!origin) return callback(null, true)
 
       if (allowedOrigins.indexOf(origin) === -1) {
@@ -33,6 +26,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 )
+
 app.use(bodyParser.json())
 
 // Register routes
