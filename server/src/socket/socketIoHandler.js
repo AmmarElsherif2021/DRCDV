@@ -9,27 +9,35 @@ import {
 } from '../services/messages.js'
 
 export function socketHandlers(io) {
+  // Configure CORS for Socket.IO
+  io.engine.on('headers', (headers, req) => {
+    headers['Access-Control-Allow-Origin'] = 'https://drcdv.vercel.app'
+    headers['Access-Control-Allow-Credentials'] = true
+  })
+
   const messageCache = new Set()
+
   io.on('connection', (socket) => {
-    console.log('A user connected')
+    console.log('A user connected:', socket.id)
+
+    // Add error handling for connection
+    socket.on('error', (error) => {
+      console.error('Socket error:', error)
+    })
 
     socket.on('createMessage', async (data) => {
       const { userId, channelId, messageData } = data
-
-      // Check if this message was recently processed
       const messageKey = `${messageData.id}-${userId}-${channelId}`
+
       if (messageCache.has(messageKey)) {
-        return // Skip if message was recently processed
+        return
       }
 
       try {
         messageCache.add(messageKey)
-        // Remove from cache after 5 seconds
         setTimeout(() => messageCache.delete(messageKey), 5000)
 
         const message = await createMessage(userId, channelId, messageData)
-
-        // Emit to all clients in one go, including sender
         io.emit('messageCreated', message)
       } catch (error) {
         console.error('Error creating message:', error)
@@ -38,6 +46,7 @@ export function socketHandlers(io) {
       }
     })
 
+    // Rest of your event handlers remain the same
     socket.on('getMessageById', async (messageId) => {
       try {
         const message = await getMessageById(messageId)
@@ -53,7 +62,7 @@ export function socketHandlers(io) {
         const updatedMessage = await updateMessage(userId, messageId, {
           text: newText,
         })
-        io.emit('messageUpdated', updatedMessage) // Broadcast to all clients
+        io.emit('messageUpdated', updatedMessage)
       } catch (error) {
         socket.emit('error', 'Error updating message')
       }
@@ -63,7 +72,7 @@ export function socketHandlers(io) {
       const { userId, messageId } = data
       try {
         const result = await deleteMessage(userId, messageId)
-        io.emit('messageDeleted', result) // Broadcast to all clients
+        io.emit('messageDeleted', result)
       } catch (error) {
         socket.emit('error', 'Error deleting message')
       }
@@ -99,7 +108,7 @@ export function socketHandlers(io) {
     })
 
     socket.on('disconnect', () => {
-      console.log('A user disconnected')
+      console.log('User disconnected:', socket.id)
     })
   })
 }

@@ -11,7 +11,7 @@ dotenv.config()
 const server = createServer(app)
 const io = new SocketIOServer(server, {
   cors: {
-    origin: '*', // During initial deployment
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
