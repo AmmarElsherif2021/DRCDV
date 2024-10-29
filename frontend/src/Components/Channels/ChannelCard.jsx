@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import { Card, ListGroup } from 'react-bootstrap'
 import groupIcon from '../../assets/person-icon.svg'
-import personIcon from '@/assets/person-icon.svg'
+import personIcon from '../../assets/person-icon.svg'
 import { User } from '../User/User'
 import { useAuth } from '../../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
