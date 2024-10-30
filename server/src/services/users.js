@@ -43,7 +43,7 @@ export async function getUserInfoById(userId) {
   try {
     const user = await User.findById(userId)
     if (!user) return { username: 'not found' }
-    return { username: user.username }
+    return { username: user.username, email: user.email }
   } catch (err) {
     return { username: userId }
   }

@@ -56,7 +56,7 @@ export function Header() {
             }}
           />
           <div className='mb-3'>
-            {userData && <User id={userData.userId} />}
+            {userData && <User id={userData.userId} showEmail={true} />}
           </div>
           <Button
             variant='outline-danger'

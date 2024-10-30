@@ -181,7 +181,17 @@ export const ChatSpace = ({ channelId }) => {
   }
 
   return (
-    <Container fluid className='p-4'>
+    <Container
+      fluid
+      style={{
+        position: 'absolute',
+        left: '9rem',
+        top: '5rem',
+        height: '90vh',
+        width: '84%',
+        //backgroundColor: '#332312',
+      }}
+    >
       <Row>
         <Col>
           <div className='d-flex justify-content-between align-items-center mb-3'>
