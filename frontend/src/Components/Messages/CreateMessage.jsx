@@ -5,6 +5,7 @@ import { Form, Container, Alert, Button } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSocket } from '../../contexts/SocketContext'
 import { jwtDecode } from 'jwt-decode'
+import { Paperclip } from 'lucide-react'
 
 export function CreateMessage({ channelId }) {
   const [text, setText] = useState('')
@@ -102,7 +103,7 @@ export function CreateMessage({ channelId }) {
   }
 
   return (
-    <Container className='p-4'>
+    <Container className='p-4 d-flex flex-column gap-3'>
       <Form onSubmit={(e) => handleSubmit(e)}>
         <Form.Group controlId='messageInput' className='mb-3'>
           <Form.Control
@@ -112,34 +113,46 @@ export function CreateMessage({ channelId }) {
             onChange={(e) => setText(e.target.value)}
           />
         </Form.Group>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Form.Group controlId='fileInput' className='mb-3'>
-            <Form.Control
-              type='file'
-              multiple
-              onChange={handleAttachmentChange}
-            />
-          </Form.Group>
-          <Button
-            variant='primary'
-            type='submit'
-            disabled={!text || sending || createMessageMutation.isPending}
-            className='ml-2'
-            style={{ backgroundColor: 'black', color: 'white' }}
-          >
-            {sending ? 'Sending...' : 'Send'}
-          </Button>
+        <div className='d-flex flex-column flex-md-row gap-3'>
+          <div className='flex-grow-1'>
+            <Form.Group controlId='fileInput' className='mb-0'>
+              <div className='d-flex align-items-center gap-3'>
+                <Form.Control
+                  type='file'
+                  multiple
+                  onChange={handleAttachmentChange}
+                  style={{ cursor: 'pointer' }}
+                />
+                <Button
+                  variant='primary'
+                  type='submit'
+                  disabled={!text || sending || createMessageMutation.isPending}
+                  style={{
+                    backgroundColor: '#1CCB8F',
+                    color: 'black',
+                    border: 'none',
+                    whiteSpace: 'nowrap',
+                    minWidth: '100px',
+                  }}
+                >
+                  {sending ? 'Sending...' : 'Send'}
+                </Button>
+              </div>
+              {attachments.length > 0 && (
+                <div className='d-flex align-items-center gap-2 mt-2'>
+                  <Paperclip color='#1CCB8F' size={20} />
+                  <span>{attachments.length} attachment(s)</span>
+                </div>
+              )}
+            </Form.Group>
+          </div>
         </div>
-        {showAlert && (
-          <Alert variant='success'>Message sent successfully!</Alert>
-        )}
       </Form>
+      {showAlert && (
+        <Alert variant='success' className='mt-3'>
+          Message sent successfully!
+        </Alert>
+      )}
     </Container>
   )
 }

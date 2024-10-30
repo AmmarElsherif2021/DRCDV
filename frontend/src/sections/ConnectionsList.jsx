@@ -85,7 +85,7 @@ export const ConnectionsList = ({ channels, handleChannelClick }) => {
                 <div className='flex-grow-1'>
                   <div className='d-flex justify-content-between align-items-center'>
                     <div className='text-truncate' style={{ maxWidth: '70%' }}>
-                      <User id={otherUserId} />
+                      <User id={otherUserId} showEmail={false} />
                     </div>
                   </div>
                 </div>

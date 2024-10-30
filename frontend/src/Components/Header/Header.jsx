@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Navbar, Nav, Card, Button, Container } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
 import profileIcon from '../../assets/profile.svg'
+import logo from '../../assets/logo.svg'
 import { User } from '../../Components/User/User'
 import { jwtDecode } from 'jwt-decode'
 
@@ -80,7 +81,10 @@ export function Header() {
       style={{ height: '4rem' }}
     >
       <Container fluid>
-        <Navbar.Brand href='/'>DRCDV</Navbar.Brand>
+        <Navbar.Brand href='/'>
+          <img src={logo} style={{ width: '3.5rem', marginRight: '0.5rem' }} />
+          DRCDV
+        </Navbar.Brand>
         <Nav className='justify-content-end'>
           {token ? (
             <div className='position-relative w-100'>

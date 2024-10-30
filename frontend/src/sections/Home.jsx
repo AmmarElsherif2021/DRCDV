@@ -8,6 +8,7 @@ import { jwtDecode } from 'jwt-decode'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Link } from 'react-router-dom'
 import sidebar from '../assets/sidebar.svg'
+import logo from '../assets/logo.svg'
 
 export function Home() {
   const [token] = useAuth()
@@ -34,33 +35,53 @@ export function Home() {
       {!userData ? (
         <Container
           className='text-center mt-5'
-          style={{ width: '100vw', margin: '4vw' }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            minWidth: '100vw',
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            //backgroundColor: '#a12223',
+          }}
         >
-          <h1>Sign in and enjoy messaging experience using DRCDV</h1>
-          <Link to={'/login'}>
-            <Button
-              variant='dark'
-              className='m-2'
-              style={{ backgroundColor: 'black', color: 'white' }}
-            >
-              Login
-            </Button>
-          </Link>
-          <Link to={'/signup'}>
-            <Button
-              variant='light'
-              className='m-2'
-              style={{ backgroundColor: '#1CCB8F', color: 'black' }}
-            >
-              Signup
-            </Button>
-          </Link>
+          <img src={logo} style={{ width: '9rem', marginBottom: '3rem' }} />
+          <h1 style={{ marginBottom: '3rem' }}>
+            Sign in and enjoy messaging experience using DRCDV
+          </h1>
+          <div>
+            <Link to={'/login'}>
+              <Button
+                variant='dark'
+                className='m-2'
+                style={{ backgroundColor: 'black', color: 'white' }}
+              >
+                Login
+              </Button>
+            </Link>
+            <Link to={'/signup'}>
+              <Button
+                variant='light'
+                className='m-2'
+                style={{ backgroundColor: '#1CCB8F', color: 'black' }}
+              >
+                Signup
+              </Button>
+            </Link>
+          </div>
         </Container>
       ) : (
         <Container
           fluid
-          className='bg-light min-vh-100'
-          style={{ width: '100vw', paddingLeft: 0 }}
+          className='bg-light'
+          style={{
+            width: '100vw',
+            height: '100vh',
+            minWidth: '320px', // Ensuring minimum width for mobile
+            paddingLeft: 0,
+          }}
         >
           <Header toggleChannelsBoard={toggleVisibility} />
           {!isVisible && (
@@ -71,7 +92,7 @@ export function Home() {
               style={{
                 position: 'fixed',
                 top: '1rem',
-                left: '1rem',
+                left: '2rem',
                 width: '4rem',
                 height: '4rem',
                 zIndex: 1000,
@@ -84,13 +105,13 @@ export function Home() {
                 style={{
                   width: '3rem',
                   position: 'fixed',
-                  top: '5rem',
+                  top: '50%',
                   left: 0,
                 }}
               />
             </Button>
           )}
-          <Row className='g-0 mt-5'>
+          <Row className='g-0 mt-5' style={{ height: '90vh' }}>
             <Col xs={12} md={2} className='d-none d-md-block'>
               <ChannelsBoard />
             </Col>
@@ -99,8 +120,7 @@ export function Home() {
               md={10}
               className='flex-grow-1'
               style={{
-                paddingLeft: '4rem',
-
+                paddingLeft: '5rem',
                 margin: 0,
               }}
             >
@@ -112,10 +132,11 @@ export function Home() {
             onHide={toggleVisibility}
             placement='start'
             style={{
-              width: '16.6667%', // Same width as Col md={2}
+              width: '16.6667%',
               height: '100vh',
               padding: 0,
               backgroundColor: '#f8f9fa',
+              minWidth: '320px', // minimum width for mobile
             }}
           >
             <Offcanvas.Body className='p-0'>

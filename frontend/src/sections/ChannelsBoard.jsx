@@ -17,15 +17,15 @@ import { ConnectionsList } from './ConnectionsList'
 import { ChannelsList } from './ChannelsList'
 
 const sidebarStyle = {
-  width: '8rem',
-  height: '100vh',
+  width: '7rem',
+  height: '95vh',
   borderRight: '3px solid #ddd',
   backgroundColor: '#f8f9fa',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: '2rem 0',
-  position: 'fixed',
+  paddingTop: '7rem',
+  //position: 'fixed',
 }
 
 const iconDivStyle = {

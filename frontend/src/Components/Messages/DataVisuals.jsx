@@ -151,7 +151,7 @@ const ChartView = ({ data }) => {
   }
 
   return (
-    <Card className='mb-4'>
+    <Card className='mb-4' style={{ fontSize: '0.8em' }}>
       <Card.Header className='d-flex justify-content-between align-items-center'>
         <ButtonGroup>
           {Object.entries(chartIcons).map(([type, icon]) => (
@@ -160,6 +160,7 @@ const ChartView = ({ data }) => {
               variant={chartType === type ? 'primary' : 'outline-primary'}
               onClick={() => setChartType(type)}
               className='d-flex align-items-center gap-2'
+              style={{ fontSize: '0.8em' }}
             >
               {icon}
               {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -181,13 +182,22 @@ const DataTable = ({ data }) => {
   return (
     <div
       className='table-responsive'
-      style={{ maxHeight: '40vh', maxWidth: '40vw', overflowY: 'auto' }}
+      style={{
+        maxHeight: '40vh',
+        width: '40rem',
+        maxWidth: '50vw',
+        overflowY: 'auto',
+      }}
     >
       <Table striped bordered hover className='mb-0'>
         <thead>
           <tr>
             {data.labels.map((header, index) => (
-              <th key={index} className='position-sticky top-0 bg-white'>
+              <th
+                key={index}
+                style={{ fontSize: '0.5em' }}
+                className='position-sticky top-0 bg-white'
+              >
                 {header}
               </th>
             ))}
@@ -197,7 +207,9 @@ const DataTable = ({ data }) => {
           {data.values.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {row.map((value, cellIndex) => (
-                <td key={cellIndex}>{value?.toString()}</td>
+                <td key={cellIndex} style={{ fontSize: '0.8em' }}>
+                  {value?.toString()}
+                </td>
               ))}
             </tr>
           ))}

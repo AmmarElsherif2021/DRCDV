@@ -95,6 +95,7 @@ export const ChatSpace = ({ channelId }) => {
     return <Spinner animation='border' role='status' />
   }
 
+  //Channel title mini component
   const channelTitle = channelData?.title ? (
     <div className='d-flex flex-row align-items-center'>
       {channelMembers.length > 2 ? (
@@ -119,7 +120,7 @@ export const ChatSpace = ({ channelId }) => {
             (member) =>
               member.user !== userData.userId && (
                 <Dropdown.Item key={member.user}>
-                  <User id={member.user} />
+                  <User id={member.user} showEmail={true} />
                 </Dropdown.Item>
               ),
           )}
@@ -184,11 +185,12 @@ export const ChatSpace = ({ channelId }) => {
     <Container
       fluid
       style={{
-        position: 'absolute',
-        left: '9rem',
-        top: '5rem',
-        height: '90vh',
-        width: '84%',
+        position: 'relative',
+        left: '-16%',
+        top: '1rem',
+        height: '90%',
+        width: '110%',
+        margin: 0,
         //backgroundColor: '#332312',
       }}
     >

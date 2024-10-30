@@ -50,7 +50,7 @@ export const MessageList = ({ messages, currentUserId }) => {
   }, [messages])
 
   return (
-    <ListGroup ref={listRef} style={{ height: '60vh', overflowY: 'auto' }}>
+    <ListGroup ref={listRef} style={{ height: '54vh', overflowY: 'auto' }}>
       {messages?.map((message, index) => (
         <Message
           key={message._id || index}

@@ -10,7 +10,7 @@ export function User({ id, showEmail = false }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <strong>{userInfo?.username ?? id}</strong>
-      <small>{userInfo?.email}</small>
+      {showEmail && <small>{userInfo?.email}</small>}
     </div>
   )
 }
