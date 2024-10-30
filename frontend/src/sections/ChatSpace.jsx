@@ -16,7 +16,8 @@ import { getMessagesByChannelId } from '../API/messages.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useSocket } from '../contexts/SocketContext.jsx'
 import userAvatar from '../assets/profile.svg'
-import sendGif from '../assets/startSending.gif'
+import sendGif from '../assets/startSending.json'
+import Lottie from 'react-lottie'
 import channelAvatar from '../assets/group-icon.svg'
 import { jwtDecode } from 'jwt-decode'
 import MessagingList from '../Components/Messages/MessageList.jsx'
@@ -129,10 +130,18 @@ export const ChatSpace = ({ channelId }) => {
     ''
   )
   if (!channelId) {
+    const defaultOptions = {
+      loop: true,
+      autoplay: true,
+      animationData: sendGif,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid slice',
+      },
+    }
+
     return (
       <div
         style={{
-          backgroundColor: 'white',
           position: 'absolute',
           padding: '1rem',
           left: '8rem',
@@ -140,11 +149,31 @@ export const ChatSpace = ({ channelId }) => {
           flexDirection: 'column',
           alignItems: 'center',
           width: '90vw',
-          height: '100%',
+          height: '90%',
+          justifyContent: 'center',
+          textAlign: 'center',
+          //backgroundColor: '#4442ab',
         }}
       >
-        <img src={sendGif} style={{ width: '15rem' }} />
-        <h1 style={{ fontSize: '3.2em' }}>
+        <div
+          style={{
+            position: 'relative',
+            width: '30%',
+            height: 'auto',
+            //marginBottom: '2rem',
+            zIndex: 0,
+            overflow: 'hidden',
+          }}
+        >
+          <Lottie options={defaultOptions} />
+        </div>
+        <h1
+          style={{
+            fontSize: '3.5rem',
+            fontWeight: 400,
+            color: 'black',
+          }}
+        >
           Navigate to connections or channels and start messaging
         </h1>
       </div>
