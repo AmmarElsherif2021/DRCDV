@@ -51,7 +51,7 @@ export function Home() {
           <h1 style={{ marginBottom: '3rem' }}>
             Sign in and enjoy messaging experience using DRCDV
           </h1>
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
             <Link to={'/login'}>
               <Button
                 variant='dark'
@@ -79,7 +79,7 @@ export function Home() {
           style={{
             width: '100vw',
             height: '100vh',
-            minWidth: '320px', // Ensuring minimum width for mobile
+            minWidth: '7rem', // minimum width for mobile
             paddingLeft: 0,
           }}
         >
@@ -105,18 +105,18 @@ export function Home() {
                 style={{
                   width: '3rem',
                   position: 'fixed',
-                  top: '50%',
+                  top: '45%',
                   left: 0,
                 }}
               />
             </Button>
           )}
           <Row className='g-0 mt-5' style={{ height: '90vh' }}>
-            <Col xs={12} md={2} className='d-none d-md-block'>
+            <Col xs={2} md={2} className='d-none d-md-block'>
               <ChannelsBoard />
             </Col>
             <Col
-              xs={12}
+              xs={10}
               md={10}
               className='flex-grow-1'
               style={{
@@ -136,7 +136,7 @@ export function Home() {
               height: '100vh',
               padding: 0,
               backgroundColor: '#f8f9fa',
-              minWidth: '320px', // minimum width for mobile
+              minWidth: '7rem', // minimum width for mobile
             }}
           >
             <Offcanvas.Body className='p-0'>

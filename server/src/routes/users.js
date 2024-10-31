@@ -4,17 +4,71 @@ import {
   getUserInfoById,
   getUsers,
 } from '../services/users.js'
+import multer from 'multer'
+import sharp from 'sharp'
+
+const upload = multer({
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+      return cb(new Error('Please upload an image file'))
+    }
+    cb(undefined, true)
+  },
+})
 
 export function usersRoutes(app) {
-  app.post('/api/v1/user/signup', async (req, res) => {
+  app.post(
+    '/api/v1/user/signup',
+    upload.single('profileImage'),
+    async (req, res) => {
+      try {
+        let imageData
+        if (req.file) {
+          // Resize and optimize image
+          imageData = await sharp(req.file.buffer)
+            .resize(300, 300, { fit: 'cover' })
+            .jpeg({ quality: 90 })
+            .toBuffer()
+        }
+
+        const userData = {
+          username: req.body.username,
+          email: req.body.email,
+          password: req.body.password,
+        }
+
+        if (imageData) {
+          userData.profileImage = {
+            data: imageData,
+            contentType: 'image/jpeg',
+          }
+        }
+
+        const user = await createUser(userData)
+        return res.status(201).json({ username: user.username })
+      } catch (err) {
+        return res.status(400).json({
+          error: 'Failed to create the user',
+        })
+      }
+    },
+  )
+
+  //route to serve profile images
+  app.get('/api/v1/users/:id/profile-image', async (req, res) => {
     try {
-      const user = await createUser(req.body)
-      //console.log('Request Body:', req.body) // Debugging log
-      return res.status(201).json({ username: user.username })
+      const user = await User.findById(req.params.id)
+      if (!user || !user.profileImage) {
+        return res.status(404).send()
+      }
+
+      res.set('Content-Type', user.profileImage.contentType)
+      res.send(user.profileImage.data)
     } catch (err) {
-      return res.status(400).json({
-        error: 'Failed to create the user, does the username already exist?',
-      })
+      res.status(400).send()
     }
   })
 

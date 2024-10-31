@@ -96,15 +96,36 @@ export const ChatSpace = ({ channelId }) => {
   }
 
   //Channel title mini component
-  const channelTitle = channelData?.title ? (
-    <div className='d-flex flex-row align-items-center'>
+  const ChannelTitle = channelData?.title ? (
+    <div
+      className='d-flex flex-row align-items-center'
+      style={{
+        //backgroundColor: '#cdf',
+        width: '10rem',
+        paddingTop: '1em',
+        paddingLeft: '1em',
+      }}
+    >
       {channelMembers.length > 2 ? (
-        <Image src={channelAvatar} alt='Channel' style={{ width: '3rem' }} />
+        <Image src={channelAvatar} alt='Channel' style={{ width: '5rem' }} />
       ) : (
-        <Image src={userAvatar} alt='User' style={{ width: '3rem' }} />
+        <Image
+          src={userAvatar}
+          alt='User'
+          style={{
+            backgroundColor: '#fff',
+            width: '4rem',
+            height: '4rem',
+            borderRadius: '50%',
+          }}
+        />
       )}
       <Dropdown>
-        <Dropdown.Toggle variant='link' id='dropdown-basic'>
+        <Dropdown.Toggle
+          variant='link'
+          id='dropdown-basic'
+          style={{ fontSize: '1.1em', color: '#000' }}
+        >
           {(
             <User
               id={
@@ -197,7 +218,7 @@ export const ChatSpace = ({ channelId }) => {
       <Row>
         <Col>
           <div className='d-flex justify-content-between align-items-center mb-3'>
-            {channelTitle}
+            {ChannelTitle}
           </div>
           <MessagingList
             messages={channelMessages}

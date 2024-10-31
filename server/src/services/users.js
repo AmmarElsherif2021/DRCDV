@@ -3,12 +3,19 @@ import bcrypt from 'bcrypt'
 import { User } from '../db/models/user.js'
 
 //create new user function
-export async function createUser({ username, email, password }) {
-  // hash password before storing in db
+export async function createUser({ username, email, password, profileImage }) {
   const hashedPassword = await bcrypt.hash(password, 10)
-  //define user
-  const user = new User({ username, email, password: hashedPassword })
-  //save the user in db
+  const userData = {
+    username,
+    email,
+    password: hashedPassword,
+  }
+
+  if (profileImage) {
+    userData.profileImage = profileImage
+  }
+
+  const user = new User(userData)
   return await user.save()
 }
 

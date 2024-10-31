@@ -1,5 +1,4 @@
 import mongoose, { Schema } from 'mongoose'
-//import bcrypt from 'bcrypt'
 
 const userSchema = new Schema(
   {
@@ -17,7 +16,15 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    status: { type: String, enum: ['online', 'offline'], default: 'offline' },
+    status: {
+      type: String,
+      enum: ['online', 'offline'],
+      default: 'offline',
+    },
+    profileImage: {
+      data: Buffer,
+      contentType: String,
+    },
   },
   { timestamps: true },
 )

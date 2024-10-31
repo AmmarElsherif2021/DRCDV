@@ -3,9 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, Link } from 'react-router-dom'
 import { Form, Button, Container, Alert, Row, Col } from 'react-bootstrap'
 import { signup } from '../API/users'
-
+import ImageUpload from './ImageUpload'
 export function Signup() {
   const [username, setUsername] = useState('')
+  const [profileImage, setProfileImage] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
@@ -39,6 +40,7 @@ export function Signup() {
           <Col xs={12}>
             <h2 className='mb-4 text-center'>Sign Up</h2>
             <Form onSubmit={handleSubmit}>
+              <ImageUpload onImageSelect={setProfileImage} previewUrl={null} />
               <Form.Group
                 controlId='create-username'
                 className='mb-3'
