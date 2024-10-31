@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Form, Button, Container, Alert, Row, Col } from 'react-bootstrap'
 import { signup } from '../API/users'
 import ImageUpload from './ImageUpload'
+
 export function Signup() {
   const [username, setUsername] = useState('')
   const [profileImage, setProfileImage] = useState(null)
@@ -11,8 +12,18 @@ export function Signup() {
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+
   const signupMutation = useMutation({
-    mutationFn: () => signup({ username, email, password }),
+    mutationFn: async () => {
+      const formData = new FormData()
+      formData.append('username', username)
+      formData.append('email', email)
+      formData.append('password', password)
+      if (profileImage) {
+        formData.append('profileImage', profileImage)
+      }
+      return await signup(formData)
+    },
     onSuccess: (user) => {
       queryClient.invalidateQueries(['channels'])
       navigate('/login', { state: { token: user.token } })
@@ -80,11 +91,11 @@ export function Signup() {
               <Button
                 variant='light'
                 type='submit'
-                disabled={!username || !password || signupMutation.isPending}
+                disabled={!username || !password || signupMutation.isLoading}
                 className='w-40'
                 style={{ backgroundColor: '#1CCB8F', color: 'black' }}
               >
-                {signupMutation.isPending ? 'Signing up...' : 'Sign Up'}
+                {signupMutation.isLoading ? 'Signing up...' : 'Sign Up'}
               </Button>
               {signupMutation.isError && (
                 <Alert variant='danger' className='mt-3'>

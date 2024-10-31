@@ -166,11 +166,11 @@ export const ChatSpace = ({ channelId }) => {
         style={{
           position: 'absolute',
           padding: '1rem',
-          left: '8rem',
+          right: '1rem',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          width: '90vw',
+          width: '87%',
           height: '90%',
           justifyContent: 'center',
           textAlign: 'center',

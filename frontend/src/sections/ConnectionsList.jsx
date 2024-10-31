@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
-
-import { ListGroup, Image } from 'react-bootstrap'
+import { ListGroup } from 'react-bootstrap'
 import { User } from '../Components/User/User'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
-import personIcon from '../assets/person-icon.svg'
+import { ProfileImage } from '../Components/User/ProfileImage'
 
 export const ConnectionsList = ({ channels, handleChannelClick }) => {
   const [token] = useAuth()
@@ -51,35 +50,11 @@ export const ConnectionsList = ({ channels, handleChannelClick }) => {
               }}
             >
               <div className='d-flex align-items-center'>
-                {/* User Avatar */}
-                <div
-                  className='position-relative'
-                  style={{ width: '40px', height: '40px', marginRight: '12px' }}
-                >
-                  <Image
-                    src={personIcon}
-                    alt='User avatar'
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '50%',
-                    }}
-                  />
-                  {/* Online Status Indicator */}
-                  <span
-                    className='position-absolute'
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      backgroundColor: '#28a745',
-                      borderRadius: '50%',
-                      bottom: '0',
-                      right: '0',
-                      border: '2px solid white',
-                    }}
-                  />
-                </div>
+                <ProfileImage
+                  userId={otherUserId}
+                  size={40}
+                  showStatus={true}
+                />
 
                 {/* User Info */}
                 <div className='flex-grow-1'>

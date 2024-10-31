@@ -2,8 +2,17 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { User } from '../db/models/user.js'
 
-//create new user function
+// Create new user function
 export async function createUser({ username, email, password, profileImage }) {
+  if (!username || !email || !password) {
+    throw new Error('Username, email, and password are required')
+  }
+
+  const existingUser = await User.findOne({ email })
+  if (existingUser) {
+    throw new Error('Email is already in use')
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10)
   const userData = {
     username,
@@ -19,50 +28,55 @@ export async function createUser({ username, email, password, profileImage }) {
   return await user.save()
 }
 
-//login user data
+// Login user function
 export async function loginUser({ username, password }) {
-  //search user by username in db
-  const user = await User.findOne({ username })
-
-  //1- check username existance
-  if (!user) {
-    throw new Error('invalid username!')
+  if (!username || !password) {
+    throw new Error('Username and password are required')
   }
 
-  //2-check password after encryption
+  const user = await User.findOne({ username })
+  if (!user) {
+    throw new Error('Invalid username')
+  }
+
   const isPasswordCorrect = await bcrypt.compare(password, user.password)
   if (!isPasswordCorrect) {
-    throw new Error('invalid password!')
+    throw new Error('Invalid password')
   }
 
-  //create json token: subject - jwt secret - expiration time
-  // eslint-disable-next-line no-undef
   const token = jwt.sign({ sub: user._id }, process.env.JWT_SECRET, {
     expiresIn: '24h',
   })
 
-  //export token
   return token
 }
 
-//get user by Id function
+// Get user by ID function
 export async function getUserInfoById(userId) {
+  if (!userId) {
+    throw new Error('User ID is required')
+  }
+
   try {
     const user = await User.findById(userId)
-    if (!user) return { username: 'not found' }
+    if (!user) {
+      return { error: 'User not found' }
+    }
     return { username: user.username, email: user.email }
   } catch (err) {
-    return { username: userId }
+    return { error: err.message }
   }
 }
 
-//get users function
+// Get users function
 export async function getUsers() {
   try {
     const users = await User.find()
-    if (!users) return { error: 'no users' }
+    if (!users.length) {
+      return { error: 'No users found' }
+    }
     return users
   } catch (err) {
-    return { error: err }
+    return { error: err.message }
   }
 }

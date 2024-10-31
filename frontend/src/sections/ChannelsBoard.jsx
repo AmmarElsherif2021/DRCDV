@@ -217,10 +217,14 @@ export function ChannelsBoard() {
             zIndex: 1000,
           }}
         >
-          <h1>WELCOME TO DRCDV</h1>
+          <h1 style={{ fontSize: '3.5em' }}>WELCOME TO DRCDV</h1>
           <hr />
           <p>Add connections and enjoy messaging</p>
-          <Button variant='primary' onClick={handleCreateChannels}>
+          <Button
+            variant='primary'
+            onClick={handleCreateChannels}
+            style={{ backgroundColor: '#1CCB8F', color: '#000' }}
+          >
             Add Connections
           </Button>
         </div>

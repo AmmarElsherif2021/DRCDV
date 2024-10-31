@@ -6,6 +6,7 @@ import {
 } from '../services/users.js'
 import multer from 'multer'
 import sharp from 'sharp'
+import { User } from '../db/models/user.js' // Ensure this import is present
 
 const upload = multer({
   limits: {
@@ -50,6 +51,7 @@ export function usersRoutes(app) {
         const user = await createUser(userData)
         return res.status(201).json({ username: user.username })
       } catch (err) {
+        console.error(err)
         return res.status(400).json({
           error: 'Failed to create the user',
         })
@@ -64,10 +66,10 @@ export function usersRoutes(app) {
       if (!user || !user.profileImage) {
         return res.status(404).send()
       }
-
       res.set('Content-Type', user.profileImage.contentType)
       res.send(user.profileImage.data)
     } catch (err) {
+      console.error(err)
       res.status(400).send()
     }
   })
@@ -77,29 +79,33 @@ export function usersRoutes(app) {
       const token = await loginUser(req.body)
       return res.status(200).send({ token })
     } catch (err) {
+      console.error(err)
       return res.status(400).send({
         error: 'Login failed, did you enter the correct username/password?',
       })
     }
   })
-  // get user by id route
+
+  // Get user by ID route
   app.get('/api/v1/users/:id', async (req, res) => {
     try {
       const userInfo = await getUserInfoById(req.params.id)
       return res.status(200).send(userInfo)
     } catch (err) {
+      console.error(err)
       return res.status(400).send({
         error: 'Failed to fetch user information.',
       })
     }
   })
 
-  // get all users route
+  // Get all users route
   app.get('/api/v1/users', async (req, res) => {
     try {
       const usersInfo = await getUsers()
       return res.status(200).send(usersInfo)
     } catch (err) {
+      console.error(err)
       return res.status(400).send({
         error: 'Failed to fetch users.',
       })
