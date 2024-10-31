@@ -57,7 +57,7 @@ export function usersRoutes(app) {
     },
   )
 
-  //route to serve profile images
+  // Add route to serve profile images
   app.get('/api/v1/users/:id/profile-image', async (req, res) => {
     try {
       const user = await User.findById(req.params.id)
