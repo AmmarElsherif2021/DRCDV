@@ -10,6 +10,8 @@ import {
   Image,
   Dropdown,
 } from 'react-bootstrap'
+import { ProfileImage } from '../Components/User/ProfileImage.jsx'
+
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
 import { getMessagesByChannelId } from '../API/messages.js'
@@ -109,15 +111,12 @@ export const ChatSpace = ({ channelId }) => {
       {channelMembers.length > 2 ? (
         <Image src={channelAvatar} alt='Channel' style={{ width: '5rem' }} />
       ) : (
-        <Image
-          src={userAvatar}
-          alt='User'
-          style={{
-            backgroundColor: '#fff',
-            width: '4rem',
-            height: '4rem',
-            borderRadius: '50%',
-          }}
+        <ProfileImage
+          userId={
+            channelData.title.split(',').filter((x) => x !== userData.userId)[0]
+          }
+          size={40}
+          showStatus={true}
         />
       )}
       <Dropdown>

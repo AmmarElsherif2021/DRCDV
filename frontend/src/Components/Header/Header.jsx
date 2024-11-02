@@ -6,7 +6,7 @@ import profileIcon from '../../assets/profile.svg'
 import logo from '../../assets/logo.svg'
 import { User } from '../../Components/User/User'
 import { jwtDecode } from 'jwt-decode'
-
+import { ProfileImage } from '../User/ProfileImage'
 export function Header() {
   const [token, setToken] = useAuth()
   const [showProfile, setShowProfile] = useState(false)
@@ -47,15 +47,14 @@ export function Header() {
     >
       <Card className='border-0'>
         <Card.Body className='d-flex flex-column align-items-center p-4'>
-          <img
-            src={profileIcon}
-            alt='Profile'
-            className='rounded-circle mb-3'
-            style={{
-              width: isSmallScreen ? '6rem' : '5rem',
-              height: isSmallScreen ? '6rem' : '5rem',
-            }}
-          />
+          <div>
+            {' '}
+            <ProfileImage
+              userId={userData.userId}
+              size={80}
+              showStatus={false}
+            />
+          </div>
           <div className='mb-3'>
             {userData && <User id={userData.userId} showEmail={true} />}
           </div>

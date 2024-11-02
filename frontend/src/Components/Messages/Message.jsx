@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react'
+import React, { useRef, useEffect, useMemo } from 'react'
 import { ListGroup, Spinner } from 'react-bootstrap'
 import { useChannel } from '../../contexts/ChannelContext'
 import EnhancedAttachment from './DataVisuals'
 import { User } from '../User/User'
 import { Avatar } from './Avatar'
-const Message = React.memo(({ message, currentUserId }) => {
+export const Message = React.memo(({ message, currentUserId }) => {
   const { channelMembers } = useChannel()
 
   // Resolve sender with fallback for pending messages
@@ -77,87 +77,3 @@ const Message = React.memo(({ message, currentUserId }) => {
 })
 
 Message.displayName = 'Message'
-
-export const MessageList = ({ messages, currentUserId, isLoading }) => {
-  const listRef = useRef(null)
-  const bottomRef = useRef(null)
-  const { channelMembers, prefetchMemberAvatars, userAvatars } = useChannel()
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
-
-  // Pre-fetch avatars for all members
-  useEffect(() => {
-    const fetchAvatars = async () => {
-      if (channelMembers.length > 0) {
-        await prefetchMemberAvatars(channelMembers)
-        console.log('Current userAvatars state:', userAvatars)
-      }
-    }
-    fetchAvatars()
-  }, [channelMembers])
-  // Enhanced message sorting with proper pending message handling
-  const sortedMessages = useMemo(() => {
-    if (!messages) return []
-    return [...messages].sort((a, b) => {
-      // Handle pending messages
-      if (a.pending && !b.pending) return 1
-      if (!b.pending && b.pending) return -1
-
-      // Handle timestamps
-      const dateA = a.createdAt ? new Date(a.createdAt) : new Date()
-      const dateB = b.createdAt ? new Date(b.createdAt) : new Date()
-      return dateA - dateB
-    })
-  }, [messages])
-
-  // Improved scroll behavior
-  const scrollToBottom = useCallback((behavior = 'smooth') => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior })
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!hasScrolledToBottom) {
-      scrollToBottom('auto')
-      setHasScrolledToBottom(true)
-    } else {
-      scrollToBottom('smooth')
-    }
-  }, [sortedMessages, hasScrolledToBottom, scrollToBottom])
-
-  if (isLoading) {
-    return (
-      <div
-        className='d-flex justify-content-center align-items-center'
-        style={{ height: '54vh' }}
-      >
-        <Spinner animation='border' role='status' style={{ color: '#1CCB8F' }}>
-          <span className='visually-hidden'>Loading messages...</span>
-        </Spinner>
-      </div>
-    )
-  }
-
-  return (
-    <ListGroup
-      ref={listRef}
-      style={{
-        height: '54vh',
-        overflowY: 'auto',
-        scrollBehavior: 'smooth',
-        padding: '1rem',
-      }}
-    >
-      {sortedMessages.map((message) => (
-        <Message
-          key={message._id || `temp-${Date.now()}-${Math.random()}`}
-          message={message}
-          currentUserId={currentUserId}
-        />
-      ))}
-      <div ref={bottomRef} />
-    </ListGroup>
-  )
-}
-
-export default React.memo(MessageList)

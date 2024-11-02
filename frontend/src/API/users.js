@@ -12,9 +12,8 @@ export const getUserProfileImage = async (userId) => {
     `${import.meta.env.VITE_BACKEND_URL}/users/${userId}/profile-image`,
   )
   if (!res.ok) throw new Error('failed to fetch profile image')
-  return res.url
+  return res
 }
-
 export const login = async ({ username, password }) => {
   const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/login`, {
     method: 'POST',

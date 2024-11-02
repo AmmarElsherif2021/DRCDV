@@ -1,18 +1,16 @@
 import { Image } from 'react-bootstrap'
 import { useState } from 'react'
 import personIcon from '../../assets/person-icon.svg'
-
-export const ProfileImage = ({
+import { useChannel } from '../../contexts/ChannelContext'
+export const Avatar = ({
   userId,
   size = 40,
-  showStatus = true,
+  showStatus = false,
   style = {},
 }) => {
-  const [imageError, setImageError] = useState(false)
-
-  const handleImageError = () => {
-    setImageError(true)
-  }
+  const { userAvatars } = useChannel()
+  const [hasError, setHasError] = useState(false)
+  const avatarUrl = userAvatars[userId]
 
   return (
     <div
@@ -24,13 +22,13 @@ export const ProfileImage = ({
       }}
     >
       <Image
-        src={
-          imageError
-            ? personIcon
-            : `${import.meta.env.VITE_BACKEND_URL}/users/${userId}/profile-image`
-        }
+        src={!hasError && avatarUrl ? avatarUrl : personIcon}
         alt='User avatar'
-        onError={handleImageError}
+        onError={(e) => {
+          setHasError(true)
+          e.target.src = personIcon
+          console.log(`Failed to load avatar for user ${userId}`)
+        }}
         style={{
           width: '100%',
           height: '100%',

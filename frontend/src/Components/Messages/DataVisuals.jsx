@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Image, Button, Table, Card, ButtonGroup } from 'react-bootstrap'
 import {
   BarChart,
@@ -179,16 +179,10 @@ const ChartView = ({ data }) => {
 
 const DataTable = ({ data }) => {
   if (!data?.labels || !data?.values) return null
-  return (
-    <div
-      className='table-responsive'
-      style={{
-        maxHeight: '40vh',
-        width: '40rem',
-        maxWidth: '50vw',
-        overflowY: 'auto',
-      }}
-    >
+
+  // Memoize the table data to prevent unnecessary re-renders
+  const tableContent = useMemo(() => {
+    return (
       <Table striped bordered hover className='mb-0'>
         <thead>
           <tr>
@@ -215,6 +209,20 @@ const DataTable = ({ data }) => {
           ))}
         </tbody>
       </Table>
+    )
+  }, [data.labels, data.values])
+
+  return (
+    <div
+      className='table-responsive'
+      style={{
+        maxHeight: '40vh',
+        width: '40rem',
+        maxWidth: '50vw',
+        overflowY: 'auto',
+      }}
+    >
+      {tableContent}
     </div>
   )
 }
