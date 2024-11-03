@@ -7,13 +7,23 @@ export const signup = async (formData) => {
   return await res.json()
 }
 
+// getUserProfileImage.js
 export const getUserProfileImage = async (userId) => {
-  const res = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/users/${userId}/profile-image`,
-  )
-  if (!res.ok) throw new Error('failed to fetch profile image')
-  return res
+  try {
+    const response = await fetch(
+      `https://drcdv-1.onrender.com/api/v1/users/${userId}/profile-image`,
+    )
+    if (!response.ok) {
+      throw new Error('failed to fetch profile image')
+    }
+    const avatarData = await response.blob()
+    return avatarData
+  } catch (error) {
+    console.error(`Failed to fetch profile image for user ${userId}:`, error)
+    throw error
+  }
 }
+
 export const login = async ({ username, password }) => {
   const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/login`, {
     method: 'POST',

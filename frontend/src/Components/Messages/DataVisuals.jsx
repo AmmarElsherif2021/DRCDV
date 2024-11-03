@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { Image, Button, Table, Card, ButtonGroup } from 'react-bootstrap'
 import {
@@ -36,78 +35,88 @@ const COLORS = [
   '#82ca9d',
 ]
 
-const DownloadButton = ({ contentType, data, filename }) => (
-  <Button
-    variant='outline-primary'
-    href={`data:${contentType};base64,${data}`}
-    download={filename}
-    className='d-flex align-items-center gap-2'
-  >
-    <svg
-      width='20'
-      height='20'
-      viewBox='0 0 24 24'
-      fill='none'
-      stroke='currentColor'
-      strokeWidth='2'
-      strokeLinecap='round'
-      strokeLinejoin='round'
+// Helper function to normalize attachment data
+const normalizeAttachmentData = (data) => {
+  if (!data) return ''
+  if (typeof data === 'string') return data
+  if (typeof data === 'object' && data.data) {
+    if (typeof data.data === 'string') return data.data
+    if (Array.isArray(data.data)) {
+      return btoa(String.fromCharCode.apply(null, data.data))
+    }
+  }
+  if (Array.isArray(data)) {
+    return btoa(String.fromCharCode.apply(null, data))
+  }
+  return data
+}
+
+// Parse CSV string to structured data
+const parseCSV = (csvString) => {
+  try {
+    const rows = csvString.split('\n').map((row) => row.split(','))
+    const headers = rows[0].map((header) => header.trim())
+    const values = rows.slice(1).map((row) =>
+      row.map((cell) => {
+        const num = parseFloat(cell)
+        return isNaN(num) ? cell.trim() : num
+      }),
+    )
+
+    return {
+      labels: headers,
+      values: values.filter((row) => row.length === headers.length), // Filter out incomplete rows
+    }
+  } catch (error) {
+    console.error('Error parsing CSV:', error)
+    return null
+  }
+}
+
+const DownloadButton = ({ contentType, data, filename }) => {
+  const normalizedData = normalizeAttachmentData(data)
+
+  return (
+    <Button
+      variant='outline-primary'
+      href={`data:${contentType};base64,${normalizedData}`}
+      download={filename}
+      className='d-flex align-items-center gap-2'
     >
-      <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-      <polyline points='7 10 12 15 17 10' />
-      <line x1='12' y1='15' x2='12' y2='3' />
-    </svg>
-    Download
-  </Button>
-)
+      <svg
+        width='20'
+        height='20'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth='2'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
+        <polyline points='7 10 12 15 17 10' />
+        <line x1='12' y1='15' x2='12' y2='3' />
+      </svg>
+      Download
+    </Button>
+  )
+}
 
 const ChartView = ({ data }) => {
   const [chartType, setChartType] = useState(CHART_TYPES.BAR)
 
-  const chartData =
-    data?.labels?.map((label, index) => ({
-      name: label,
-      value: data.values[index],
-    })) || []
+  const chartData = useMemo(() => {
+    if (!data?.values || !data?.labels) return []
 
-  const ChartComponents = {
-    [CHART_TYPES.BAR]: (
-      <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray='3 3' />
-        <XAxis dataKey='name' />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey='value' fill='#8884d8' />
-      </BarChart>
-    ),
-    [CHART_TYPES.LINE]: (
-      <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray='3 3' />
-        <XAxis dataKey='name' />
-        <YAxis />
-        <Tooltip />
-        <Line type='monotone' dataKey='value' stroke='#8884d8' />
-      </LineChart>
-    ),
-    [CHART_TYPES.PIE]: (
-      <PieChart>
-        <Pie
-          data={chartData}
-          dataKey='value'
-          nameKey='name'
-          cx='50%'
-          cy='50%'
-          outerRadius={150}
-          label
-        >
-          {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    ),
-  }
+    // Transform data for charts
+    return data.values.map((row, index) => {
+      const dataPoint = { name: row[0] } // First column as name
+      data.labels.slice(1).forEach((label, i) => {
+        dataPoint[label] = row[i + 1]
+      })
+      return dataPoint
+    })
+  }, [data])
 
   const chartIcons = {
     [CHART_TYPES.BAR]: (
@@ -150,6 +159,61 @@ const ChartView = ({ data }) => {
     ),
   }
 
+  const dataKeys = data?.labels?.slice(1) || []
+
+  const ChartComponents = {
+    [CHART_TYPES.BAR]: (
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='name' />
+        <YAxis />
+        <Tooltip />
+        {dataKeys.map((key, index) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            fill={COLORS[index % COLORS.length]}
+            stackId='stack'
+          />
+        ))}
+      </BarChart>
+    ),
+    [CHART_TYPES.LINE]: (
+      <LineChart data={chartData}>
+        <CartesianGrid strokeDasharray='3 3' />
+        <XAxis dataKey='name' />
+        <YAxis />
+        <Tooltip />
+        {dataKeys.map((key, index) => (
+          <Line
+            key={key}
+            type='monotone'
+            dataKey={key}
+            stroke={COLORS[index % COLORS.length]}
+          />
+        ))}
+      </LineChart>
+    ),
+    [CHART_TYPES.PIE]: (
+      <PieChart>
+        <Pie
+          data={chartData}
+          dataKey={dataKeys[0]}
+          nameKey='name'
+          cx='50%'
+          cy='50%'
+          outerRadius={150}
+          label
+        >
+          {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+      </PieChart>
+    ),
+  }
+
   return (
     <Card className='mb-4' style={{ fontSize: '0.8em' }}>
       <Card.Header className='d-flex justify-content-between align-items-center'>
@@ -180,16 +244,15 @@ const ChartView = ({ data }) => {
 const DataTable = ({ data }) => {
   if (!data?.labels || !data?.values) return null
 
-  // Memoize the table data to prevent unnecessary re-renders
-  const tableContent = useMemo(() => {
-    return (
+  const tableContent = useMemo(
+    () => (
       <Table striped bordered hover className='mb-0'>
         <thead>
           <tr>
             {data.labels.map((header, index) => (
               <th
                 key={index}
-                style={{ fontSize: '0.5em' }}
+                style={{ fontSize: '0.8em' }}
                 className='position-sticky top-0 bg-white'
               >
                 {header}
@@ -209,8 +272,9 @@ const DataTable = ({ data }) => {
           ))}
         </tbody>
       </Table>
-    )
-  }, [data.labels, data.values])
+    ),
+    [data.labels, data.values],
+  )
 
   return (
     <div
@@ -240,10 +304,13 @@ const FileIcon = () => (
     <polyline points='14 2 14 8 20 8' />
   </svg>
 )
+
 const EnhancedAttachment = ({ attachment }) => {
   const [showPlot, setShowPlot] = useState(false)
 
   if (!attachment) return null
+
+  const normalizedData = normalizeAttachmentData(attachment.data)
 
   // Handle image attachments
   if (attachment.contentType?.startsWith(MIME_TYPES.IMAGE)) {
@@ -254,56 +321,69 @@ const EnhancedAttachment = ({ attachment }) => {
           style={{ height: 'auto', width: '100%' }}
         >
           <Image
-            src={`data:${attachment.contentType};base64,${attachment.data}`}
+            src={`data:${attachment.contentType};base64,${normalizedData}`}
             alt={attachment.filename}
             className='w-100 h-auto'
             style={{ objectFit: 'contain', maxWidth: '100%', height: 'auto' }}
           />
         </div>
         <div className='mt-3'>
-          <DownloadButton {...attachment} />
+          <DownloadButton
+            contentType={attachment.contentType}
+            data={normalizedData}
+            filename={attachment.filename}
+          />
         </div>
       </div>
     )
   }
 
-  // Handle CSV attachments with chart data
-  if (attachment.contentType === MIME_TYPES.CSV && attachment.chartData) {
-    return (
-      <div className='mb-3'>
-        <div className='d-flex justify-content-between align-items-center mb-3'>
-          <Button
-            variant='outline-primary'
-            onClick={() => setShowPlot(!showPlot)}
-            className='d-flex align-items-center gap-2'
-          >
-            <svg
-              width='20'
-              height='20'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='2'
+  // Handle CSV attachments
+  if (attachment.contentType === MIME_TYPES.CSV) {
+    // Parse CSV data if not already parsed
+    const chartData = attachment.chartData || parseCSV(atob(normalizedData))
+
+    if (chartData) {
+      return (
+        <div className='mb-3'>
+          <div className='d-flex justify-content-between align-items-center mb-3'>
+            <Button
+              variant='outline-primary'
+              onClick={() => setShowPlot(!showPlot)}
+              className='d-flex align-items-center gap-2'
             >
-              {showPlot ? (
-                <path d='M19 9l-7 7-7-7' />
-              ) : (
-                <path d='M9 18l6-6-6-6' />
-              )}
-            </svg>
-            {showPlot ? 'Hide Charts' : 'Show Charts'}
-          </Button>
-          <DownloadButton {...attachment} />
+              <svg
+                width='20'
+                height='20'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+              >
+                {showPlot ? (
+                  <path d='M19 9l-7 7-7-7' />
+                ) : (
+                  <path d='M9 18l6-6-6-6' />
+                )}
+              </svg>
+              {showPlot ? 'Hide Charts' : 'Show Charts'}
+            </Button>
+            <DownloadButton
+              contentType={attachment.contentType}
+              data={normalizedData}
+              filename={attachment.filename}
+            />
+          </div>
+          {showPlot && <ChartView data={chartData} />}
+          <Card>
+            <Card.Header>Data Table</Card.Header>
+            <Card.Body className='p-0'>
+              <DataTable data={chartData} />
+            </Card.Body>
+          </Card>
         </div>
-        {showPlot && <ChartView data={attachment.chartData} />}
-        <Card>
-          <Card.Header>Data Table</Card.Header>
-          <Card.Body className='p-0'>
-            <DataTable data={attachment.chartData} />
-          </Card.Body>
-        </Card>
-      </div>
-    )
+      )
+    }
   }
 
   // Default placeholder for other file types
@@ -311,7 +391,11 @@ const EnhancedAttachment = ({ attachment }) => {
     <div className='d-flex align-items-center gap-2 p-3 border rounded'>
       <FileIcon />
       <span className='flex-grow-1'>{attachment.filename}</span>
-      <DownloadButton {...attachment} />
+      <DownloadButton
+        contentType={attachment.contentType}
+        data={normalizedData}
+        filename={attachment.filename}
+      />
     </div>
   )
 }
