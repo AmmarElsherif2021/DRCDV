@@ -8,7 +8,7 @@ const initialState = {
   userAvatars: {},
   loadingAvatars: {},
   failedAvatars: {},
-  attachmentCache: new Map(), // Using Map for better performance
+  attachmentCache: new Map(),
 }
 
 const ChannelContext = createContext(undefined)

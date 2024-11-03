@@ -15,7 +15,8 @@ export const useMessageManagement = (channelId, token) => {
   const [sending, setSending] = useState(false)
   const [userId, setUserId] = useState(null)
   const socket = useSocket()
-  const { channelMembers, channelMessages, setChannelMessages } = useChannel()
+  const { channelMembers, channelMessages, setChannelMessages, fetch } =
+    useChannel()
 
   // Decode user ID from token on mount
   useEffect(() => {

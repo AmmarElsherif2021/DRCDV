@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react'
-import { Image, Button, Table, Card, ButtonGroup } from 'react-bootstrap'
+import { useState } from 'react'
 import {
   BarChart,
   Bar,
@@ -14,6 +13,17 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import {
+  Download,
+  ChevronDown,
+  ChevronUp,
+  BarChart2,
+  LineChart as LineIcon,
+  PieChart as PieIcon,
+  File,
+  Image as ImageIcon,
+  Table as TableIcon,
+} from 'lucide-react'
 
 const MIME_TYPES = {
   CSV: 'text/csv',
@@ -35,7 +45,12 @@ const COLORS = [
   '#82ca9d',
 ]
 
-// Helper function to normalize attachment data
+// Constants for sizing
+const MAX_IMAGE_HEIGHT = 400
+const MAX_TABLE_HEIGHT = 300
+const INITIAL_TABLE_HEIGHT = 200
+const CHART_HEIGHT = 300
+
 const normalizeAttachmentData = (data) => {
   if (!data) return ''
   if (typeof data === 'string') return data
@@ -51,7 +66,6 @@ const normalizeAttachmentData = (data) => {
   return data
 }
 
-// Parse CSV string to structured data
 const parseCSV = (csvString) => {
   try {
     const rows = csvString.split('\n').map((row) => row.split(','))
@@ -62,10 +76,9 @@ const parseCSV = (csvString) => {
         return isNaN(num) ? cell.trim() : num
       }),
     )
-
     return {
       labels: headers,
-      values: values.filter((row) => row.length === headers.length), // Filter out incomplete rows
+      values: values.filter((row) => row.length === headers.length),
     }
   } catch (error) {
     console.error('Error parsing CSV:', error)
@@ -73,98 +86,71 @@ const parseCSV = (csvString) => {
   }
 }
 
-const DownloadButton = ({ contentType, data, filename }) => {
-  const normalizedData = normalizeAttachmentData(data)
+const IconButton = ({
+  icon: Icon,
+  onClick,
+  title,
+  className = '',
+  active = false,
+}) => (
+  <button
+    onClick={onClick}
+    title={title}
+    className={`p-0 border-0 bg-transparent ${className}`}
+    style={{ color: '#ffffff' }}
+  >
+    <Icon size={18} className='text' />
+  </button>
+)
 
-  return (
-    <Button
-      variant='outline-primary'
-      href={`data:${contentType};base64,${normalizedData}`}
-      download={filename}
-      className='d-flex align-items-center gap-2'
-    >
-      <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      >
-        <path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' />
-        <polyline points='7 10 12 15 17 10' />
-        <line x1='12' y1='15' x2='12' y2='3' />
-      </svg>
-      Download
-    </Button>
-  )
-}
+const DownloadButton = ({ contentType, data, filename }) => (
+  <IconButton
+    icon={Download}
+    onClick={() => {
+      const link = document.createElement('a')
+      link.href = `data:${contentType};base64,${data}`
+      link.download = filename
+      link.click()
+    }}
+    title='Download'
+    className='hover:bg-gray-100/80'
+  />
+)
 
+const AttachmentHeader = ({ icon: Icon, title, actions }) => (
+  <div
+    className='flex items-center justify-between p-2 bg-gray-50 border-b flex-row'
+    style={{
+      //backgroundColor: '#433456',
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      height: '2.5rem',
+      color: '#ffffff',
+    }}
+  >
+    <Icon size={18} />
+
+    <div className='flex gap-1 flex-row'>{actions}</div>
+  </div>
+)
 const ChartView = ({ data }) => {
   const [chartType, setChartType] = useState(CHART_TYPES.BAR)
-
-  const chartData = useMemo(() => {
-    if (!data?.values || !data?.labels) return []
-
-    // Transform data for charts
-    return data.values.map((row, index) => {
-      const dataPoint = { name: row[0] } // First column as name
-      data.labels.slice(1).forEach((label, i) => {
-        dataPoint[label] = row[i + 1]
-      })
-      return dataPoint
-    })
-  }, [data])
-
-  const chartIcons = {
-    [CHART_TYPES.BAR]: (
-      <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-      >
-        <rect x='3' y='3' width='18' height='18' rx='2' />
-        <path d='M8 15v-5m4 5V8m4 7v-3' />
-      </svg>
-    ),
-    [CHART_TYPES.LINE]: (
-      <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-      >
-        <path d='M3 12h18M3 6h18M3 18h18' />
-      </svg>
-    ),
-    [CHART_TYPES.PIE]: (
-      <svg
-        width='20'
-        height='20'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        strokeWidth='2'
-      >
-        <path d='M12 2v20M2 12h20' />
-        <circle cx='12' cy='12' r='10' />
-      </svg>
-    ),
-  }
-
   const dataKeys = data?.labels?.slice(1) || []
+
+  const chartData = data.values.map((row) => {
+    const dataPoint = { name: row[0] }
+    data.labels.slice(1).forEach((label, i) => {
+      dataPoint[label] = row[i + 1]
+    })
+    return dataPoint
+  })
 
   const ChartComponents = {
     [CHART_TYPES.BAR]: (
       <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray='3 3' />
+        <CartesianGrid strokeDasharray='3 3' strokeOpacity={0.5} />
         <XAxis dataKey='name' />
         <YAxis />
         <Tooltip />
@@ -180,7 +166,7 @@ const ChartView = ({ data }) => {
     ),
     [CHART_TYPES.LINE]: (
       <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray='3 3' />
+        <CartesianGrid strokeDasharray='3 3' strokeOpacity={0.5} />
         <XAxis dataKey='name' />
         <YAxis />
         <Tooltip />
@@ -190,6 +176,7 @@ const ChartView = ({ data }) => {
             type='monotone'
             dataKey={key}
             stroke={COLORS[index % COLORS.length]}
+            strokeWidth={2}
           />
         ))}
       </LineChart>
@@ -202,7 +189,7 @@ const ChartView = ({ data }) => {
           nameKey='name'
           cx='50%'
           cy='50%'
-          outerRadius={150}
+          outerRadius={100}
           label
         >
           {chartData.map((entry, index) => (
@@ -215,95 +202,89 @@ const ChartView = ({ data }) => {
   }
 
   return (
-    <Card className='mb-4' style={{ fontSize: '0.8em' }}>
-      <Card.Header className='d-flex justify-content-between align-items-center'>
-        <ButtonGroup>
-          {Object.entries(chartIcons).map(([type, icon]) => (
-            <Button
-              key={type}
-              variant={chartType === type ? 'primary' : 'outline-primary'}
-              onClick={() => setChartType(type)}
-              className='d-flex align-items-center gap-2'
-              style={{ fontSize: '0.8em' }}
-            >
-              {icon}
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </Card.Header>
-      <Card.Body>
-        <ResponsiveContainer width='100%' height={300}>
+    <div className='bg-white rounded-lg border'>
+      <div className='flex items-center gap-1 p-2 border-b bg-gray-50'>
+        <IconButton
+          icon={BarChart2}
+          onClick={() => setChartType(CHART_TYPES.BAR)}
+          title='Bar Chart'
+          active={chartType === CHART_TYPES.BAR}
+        />
+        <IconButton
+          icon={LineIcon}
+          onClick={() => setChartType(CHART_TYPES.LINE)}
+          title='Line Chart'
+          active={chartType === CHART_TYPES.LINE}
+        />
+        <IconButton
+          icon={PieIcon}
+          onClick={() => setChartType(CHART_TYPES.PIE)}
+          title='Pie Chart'
+          active={chartType === CHART_TYPES.PIE}
+        />
+      </div>
+      <div className='p-4'>
+        <ResponsiveContainer width='100%' height={CHART_HEIGHT}>
           {ChartComponents[chartType]}
         </ResponsiveContainer>
-      </Card.Body>
-    </Card>
-  )
-}
-
-const DataTable = ({ data }) => {
-  if (!data?.labels || !data?.values) return null
-
-  const tableContent = useMemo(
-    () => (
-      <Table striped bordered hover className='mb-0'>
-        <thead>
-          <tr>
-            {data.labels.map((header, index) => (
-              <th
-                key={index}
-                style={{ fontSize: '0.8em' }}
-                className='position-sticky top-0 bg-white'
-              >
-                {header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.values.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {row.map((value, cellIndex) => (
-                <td key={cellIndex} style={{ fontSize: '0.8em' }}>
-                  {value?.toString()}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    ),
-    [data.labels, data.values],
-  )
-
-  return (
-    <div
-      className='table-responsive'
-      style={{
-        maxHeight: '40vh',
-        width: '40rem',
-        maxWidth: '50vw',
-        overflowY: 'auto',
-      }}
-    >
-      {tableContent}
+      </div>
     </div>
   )
 }
 
-const FileIcon = () => (
-  <svg
-    width='24'
-    height='24'
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth='2'
-  >
-    <path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' />
-    <polyline points='14 2 14 8 20 8' />
-  </svg>
-)
+const DataTable = ({ data }) => {
+  const [expanded, setExpanded] = useState(false)
+
+  if (!data?.labels || !data?.values) return null
+
+  return (
+    <div
+      className={`overflow-hidden transition-all duration-300`}
+      style={{ maxHeight: '50vh', overflow: 'auto' }}
+    >
+      <div className='overflow-auto' style={{ overflow: 'auto' }}>
+        <table className='min-w-full divide-y divide-gray-200'>
+          <thead className='bg-gray-50'>
+            <tr>
+              {data.labels.map((header, index) => (
+                <th
+                  key={index}
+                  className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50'
+                >
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className='bg-white divide-y divide-gray-200'>
+            {data.values.map((row, rowIndex) => (
+              <tr key={rowIndex} className='hover:bg-gray-50'>
+                {row.map((value, cellIndex) => (
+                  <td
+                    key={cellIndex}
+                    className='px-4 py-2 whitespace-nowrap text-sm text-gray-900'
+                  >
+                    {value?.toString()}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className='w-full text-center py-1 hover:bg-gray-100 text-gray-500 border-t'
+      >
+        {expanded ? (
+          <ChevronUp size={16} className='mx-auto' />
+        ) : (
+          <ChevronDown size={16} className='mx-auto' />
+        )}
+      </button>
+    </div>
+  )
+}
 
 const EnhancedAttachment = ({ attachment }) => {
   const [showPlot, setShowPlot] = useState(false)
@@ -312,89 +293,79 @@ const EnhancedAttachment = ({ attachment }) => {
 
   const normalizedData = normalizeAttachmentData(attachment.data)
 
-  // Handle image attachments
   if (attachment.contentType?.startsWith(MIME_TYPES.IMAGE)) {
     return (
-      <div className='mb-3'>
-        <div
-          className='position-relative'
-          style={{ height: 'auto', width: '100%' }}
-        >
-          <Image
+      <div className='rounded-lg   overflow-hidden'>
+        <AttachmentHeader
+          icon={ImageIcon}
+          title={attachment.filename}
+          actions={
+            <DownloadButton
+              contentType={attachment.contentType}
+              data={normalizedData}
+              filename={attachment.filename}
+            />
+          }
+        />
+        <div className='relative'>
+          <img
             src={`data:${attachment.contentType};base64,${normalizedData}`}
             alt={attachment.filename}
-            className='w-100 h-auto'
-            style={{ objectFit: 'contain', maxWidth: '100%', height: 'auto' }}
-          />
-        </div>
-        <div className='mt-3'>
-          <DownloadButton
-            contentType={attachment.contentType}
-            data={normalizedData}
-            filename={attachment.filename}
+            className='w-full h-auto object-contain'
+            style={{ maxHeight: MAX_IMAGE_HEIGHT }}
           />
         </div>
       </div>
     )
   }
 
-  // Handle CSV attachments
   if (attachment.contentType === MIME_TYPES.CSV) {
-    // Parse CSV data if not already parsed
     const chartData = attachment.chartData || parseCSV(atob(normalizedData))
 
     if (chartData) {
       return (
-        <div className='mb-3'>
-          <div className='d-flex justify-content-between align-items-center mb-3'>
-            <Button
-              variant='outline-primary'
-              onClick={() => setShowPlot(!showPlot)}
-              className='d-flex align-items-center gap-2'
-            >
-              <svg
-                width='20'
-                height='20'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-              >
-                {showPlot ? (
-                  <path d='M19 9l-7 7-7-7' />
-                ) : (
-                  <path d='M9 18l6-6-6-6' />
-                )}
-              </svg>
-              {showPlot ? 'Hide Charts' : 'Show Charts'}
-            </Button>
-            <DownloadButton
-              contentType={attachment.contentType}
-              data={normalizedData}
-              filename={attachment.filename}
-            />
+        <div className='flex rounded-lg border bg-white overflow-hidden flex-row'>
+          <AttachmentHeader
+            icon={TableIcon}
+            title={attachment.filename}
+            actions={
+              <>
+                <IconButton
+                  icon={showPlot ? ChevronUp : ChevronDown}
+                  onClick={() => setShowPlot(!showPlot)}
+                  title={showPlot ? 'Hide Charts' : 'Show Charts'}
+                />
+                <DownloadButton
+                  contentType={attachment.contentType}
+                  data={normalizedData}
+                  filename={attachment.filename}
+                />
+              </>
+            }
+          />
+          <div
+            className={`space-y-2 transition-all duration-300 ${showPlot ? 'py-4' : ''}`}
+          >
+            {showPlot && <ChartView data={chartData} />}
+            <DataTable data={chartData} />
           </div>
-          {showPlot && <ChartView data={chartData} />}
-          <Card>
-            <Card.Header>Data Table</Card.Header>
-            <Card.Body className='p-0'>
-              <DataTable data={chartData} />
-            </Card.Body>
-          </Card>
         </div>
       )
     }
   }
 
-  // Default placeholder for other file types
   return (
-    <div className='d-flex align-items-center gap-2 p-3 border rounded'>
-      <FileIcon />
-      <span className='flex-grow-1'>{attachment.filename}</span>
-      <DownloadButton
-        contentType={attachment.contentType}
-        data={normalizedData}
-        filename={attachment.filename}
+    <div className='rounded-lg border bg-white overflow-hidden'>
+      <AttachmentHeader
+        icon={File}
+        title={attachment.filename}
+        actions={
+          <DownloadButton
+            contentType={attachment.contentType}
+            data={normalizedData}
+            filename={attachment.filename}
+          />
+        }
       />
     </div>
   )
