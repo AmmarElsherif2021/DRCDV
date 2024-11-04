@@ -1,6 +1,4 @@
-# Chat System Documentation
-
-## Message Creation & Sending Flow
+### Message Creation & Sending Flow
 
 ### 1. Message Creation Process
 
