@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 import { ListGroup, ListGroupItem } from 'react-bootstrap'
-import { ChannelCard } from '../Components/Channels/ChannelCard'
+import { ChannelCard } from './ChannelCard'
 //import { useQueryClient } from '@tanstack/react-query';
 
 export function ChannelsList({ channels, handleChannelClick }) {

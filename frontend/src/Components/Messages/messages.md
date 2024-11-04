@@ -1,137 +1,130 @@
-# Code Documentation for Messaging Component
+# Chat System Documentation
 
-## CreateMessage.jsx
+## Message Creation & Sending Flow
 
-This component handles message creation and sending in a chat application.
+### 1. Message Creation Process
 
-### Key Responsibilities:
+The message creation process starts in the `CreateMessage` component and follows these steps:
 
-- Manage message input state
-- Handle file attachments
-- Create and send messages via WebSocket
-- Provide real-time feedback on message sending
+#### Initial Setup
 
-### Key Techniques:
+- Component uses `useMessageManagement` hook which manages:
+  - Message text state
+  - Attachments state
+  - Sending state
+  - User authentication
+  - Socket connection
 
-- Uses React Hooks (useState, useEffect)
-- Integrates with React Query for state management
-- Uses socket.io for real-time communication
-- Implements optimistic UI updates
-- Handles temporary message rendering before server confirmation
+#### Message Submission Flow
 
-### Improvements and DRY Refactoring:
+1. User types message and/or adds attachments
+2. On form submission:
+   - Prevents default form behavior
+   - Validates message (must have text and not already sending)
+   - Creates message object with:
+     - Text content
+     - Any attachments
+     - Channel ID
+3. Optimistic Update:
+   - Creates temporary message with `createTempMessage`
+   - Adds to channel messages immediately
+   - Shows with pending state (opacity: 0.7)
 
-1. Extract file reading logic into a separate utility function
-2. Create a reusable hook for socket event management
-3. Consolidate message creation and sending logic
+#### Socket Communication
 
-### Performance Considerations:
+1. Message sent to server via socket:
 
-- Uses `useCallback` for socket event handlers
-- Implements `setSending` state to prevent duplicate message submissions
-- Optimistically updates message list for immediate UI feedback
+```javascript
+socket.emit('createMessage', {
+  userId,
+  channelId,
+  messageData: {
+    text,
+    attachments,
+    tempId,
+  },
+})
+```
 
-## MessageList.jsx
+2. Server processes message and emits 'messageCreated' event
+3. Client receives confirmation and:
+   - Removes temporary message
+   - Adds confirmed message
+   - Clears input fields
+   - Resets sending state
 
-This component manages the display of messages in a chat channel.
+### 2. Message Rendering Process
 
-### Key Responsibilities:
+#### Message Component Structure
 
-- Render a scrollable list of messages
-- Support different message styles for current user vs. other users
-- Handle message sorting and scrolling
-- Prefetch user avatars
-- Support temporary/pending messages
+```
+Message
+├── MessageContent
+│   ├── Avatar (for non-current users)
+│   ├── SenderName
+│   └── Attachments
+```
 
-### Key Techniques:
+#### Rendering Logic
 
-- Memoization for performance optimization
-- Dynamic message styling based on sender
-- Automatic scrolling to latest message
-- Avatar caching and prefetching
-- Support for file attachments
+1. Message Identification:
 
-### Improvements and DRY Refactoring:
+   - Determines if sender is current user
+   - Resolves sender information from channel members
 
-1. Extract avatar rendering logic into a separate component
-2. Create a utility function for message sorting
-3. Consider using a virtualized list for large message collections
+2. Styling Application:
 
-### Performance Considerations:
+   - Current user messages:
+     - Right-aligned
+     - Green background (#1CCB8F)
+   - Other user messages:
+     - Left-aligned
+     - Black background
+   - Pending messages:
+     - Reduced opacity
+     - Slightly scaled down
 
-- Uses `React.memo` to prevent unnecessary re-renders
-- Implements efficient avatar prefetching
-- Smooth scrolling with `scrollIntoView`
+3. Avatar Handling:
+   - Only shown for non-current users
+   - Managed by ChannelContext
+   - States: loading, loaded, failed, idle
+   - Implements lazy loading and caching
 
-## ChatSpace.jsx
+### 3. Context Management
 
-This is the main container component for the chat interface.
+#### Channel Context
 
-### Key Responsibilities:
+- Manages:
+  - Selected channel
+  - Channel messages
+  - Channel members
+  - Avatar states
+  - Attachment cache
 
-- Manage channel and message data fetching
-- Handle WebSocket message updates
-- Render chat interface or welcome screen
-- Support dynamic channel titles and member display
+#### Socket Context
 
-### Key Techniques:
+- Provides socket connection
+- Handles:
+  - Connection establishment
+  - Error handling
+  - Cross-origin requests
+  - WebSocket transport
 
-- Uses React Query for data fetching
-- Implements JWT token decoding
-- Dynamically renders channel information
-- Supports both group and one-on-one chat interfaces
+### 4. Optimization Strategies
 
-### Improvements and DRY Refactoring:
+#### Avatar Management
 
-1. Extract token decoding into a separate utility function
-2. Create a reusable channel title component
-3. Centralize socket event handling
+- Batch processing (2 avatars at a time)
+- Caching mechanism
+- Validates image quality
+- Cleanup of blob URLs
 
-### Performance Considerations:
+#### Message Updates
 
-- Lazy loads channel and message data
-- Provides loading spinners during data fetch
-- Efficiently manages WebSocket connections
-
-## Cross-Cutting Concerns and Shared Patterns
-
-- WebSocket integration via context
-- Authentication management via context
-- Consistent use of React Bootstrap for UI components
-- Centralized state management with React Query
-- Optimistic UI updates
-- Real-time communication
-
-## Potential Future Improvements
-
-- Implement message editing and deletion
-- Add more sophisticated attachment handling
-- Enhance error handling and network resilience
-- Implement message search functionality
-
-# Message Creation Flow (CreateMessage.jsx):
-
-## Initial Setup:
-
-Uses React Query for mutations and cache management
-Maintains state for message text, attachments, and sending status
-Integrates with Socket.IO for real-time communication
-
-### Message Sending Process:
-
-a. When user submits a message:
-
-Creates a temporary message with a unique tempId
-Immediately adds this temp message to the React Query cache
-Shows the message in UI with reduced opacity and scale
-Emits createMessage event to socket with message data
-
-b. When server confirms message creation:
-
-Listens for messageCreated socket event
-Removes temporary message from cache
-Adds confirmed message from server
-Resets form and shows success alert
+- Optimistic updates for better UX
+- Temporary message handling
+- Efficient state updates
+- Attachment caching
 
 # Message Listing Flow (MessageList.jsx):
 

@@ -13,8 +13,8 @@ import { useState, useEffect } from 'react'
 import createChannelIcon from '../assets/createGroup.svg'
 import connectionsIcon from '../assets/connections.svg'
 import channelsIcon from '../assets/channels.svg'
-import { ConnectionsList } from './ConnectionsList'
-import { ChannelsList } from './ChannelsList'
+import { ConnectionsList } from '../Components/Channels/ConnectionsList'
+import { ChannelsList } from '../Components/Channels/ChannelsList'
 
 const sidebarStyle = {
   width: '7rem',
@@ -102,7 +102,7 @@ const SidebarContent = ({
   </div>
 )
 
-export function ChannelsBoard() {
+export function Sidebar() {
   const [token] = useAuth()
   const { setSelectedChannel, setChannelMessages, setChannelMembers } =
     useChannel()

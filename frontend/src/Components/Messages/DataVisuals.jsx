@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import {
   Download,
+  ChartBar,
   ChevronDown,
   ChevronUp,
   BarChart2,
@@ -121,18 +122,27 @@ const AttachmentHeader = ({ icon: Icon, title, actions }) => (
   <div
     className='flex items-center justify-between p-2 bg-gray-50 border-b flex-row'
     style={{
-      //backgroundColor: '#433456',
+      backgroundColor: '#000',
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      height: '2.5rem',
+      height: '2rem',
       color: '#ffffff',
     }}
   >
     <Icon size={18} />
 
-    <div className='flex gap-1 flex-row'>{actions}</div>
+    <div
+      className='flex gap-1 flex-row'
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+      }}
+    >
+      {actions}
+    </div>
   </div>
 )
 const ChartView = ({ data }) => {
@@ -203,7 +213,18 @@ const ChartView = ({ data }) => {
 
   return (
     <div className='bg-white rounded-lg border'>
-      <div className='flex items-center gap-1 p-2 border-b bg-gray-50'>
+      <div
+        className='flex items-center gap-1 p-2 border-b bg-gray-50'
+        style={{
+          backgroundColor: '#00bbba',
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          height: '1.7rem',
+          padding: 0,
+        }}
+      >
         <IconButton
           icon={BarChart2}
           onClick={() => setChartType(CHART_TYPES.BAR)}
@@ -239,11 +260,14 @@ const DataTable = ({ data }) => {
 
   return (
     <div
-      className={`overflow-hidden transition-all duration-300`}
-      style={{ maxHeight: '50vh', overflow: 'auto' }}
+      className={`overflow-auto transition-all duration-300`}
+      style={{ maxHeight: expanded ? '100vh' : '50vh', overflow: 'auto' }}
     >
-      <div className='overflow-auto' style={{ overflow: 'auto' }}>
-        <table className='min-w-full divide-y divide-gray-200'>
+      <div className='overflow-auto'>
+        <table
+          className='min-w-full  table-auto'
+          style={{ overflow: 'auto', fontSize: '0.8em' }}
+        >
           <thead className='bg-gray-50'>
             <tr>
               {data.labels.map((header, index) => (
@@ -331,7 +355,7 @@ const EnhancedAttachment = ({ attachment }) => {
             actions={
               <>
                 <IconButton
-                  icon={showPlot ? ChevronUp : ChevronDown}
+                  icon={showPlot ? ChevronUp : ChartBar}
                   onClick={() => setShowPlot(!showPlot)}
                   title={showPlot ? 'Hide Charts' : 'Show Charts'}
                 />

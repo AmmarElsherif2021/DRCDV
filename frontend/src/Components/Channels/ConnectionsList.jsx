@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
 import { ListGroup } from 'react-bootstrap'
-import { User } from '../Components/User/User'
-import { useAuth } from '../contexts/AuthContext'
+import { User } from '../User/User'
+import { useAuth } from '../../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
-import { ProfileImage } from '../Components/User/ProfileImage'
+import { ProfileImage } from '../User/ProfileImage'
 
 export const ConnectionsList = ({ channels, handleChannelClick }) => {
   const [token] = useAuth()

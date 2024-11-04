@@ -48,7 +48,7 @@
                 └── SocketContext.jsx
                 └── UserHomeContext.jsx
             └── 📁sections
-                └── ChannelsBoard.jsx
+                └── Sidebar.jsx
                 └── ChannelsList.jsx
                 └── ChatSpace.jsx
                 └── ConnectionsList.jsx

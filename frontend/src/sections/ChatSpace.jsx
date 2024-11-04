@@ -216,7 +216,10 @@ export const ChatSpace = ({ channelId }) => {
     >
       <Row>
         <Col>
-          <div className='d-flex justify-content-between align-items-center mb-3'>
+          <div
+            className='d-flex justify-content-between align-items-center mb-3'
+            style={{ height: '3.5rem', padding: 0 }}
+          >
             {ChannelTitle}
           </div>
           <MessagingList

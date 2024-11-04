@@ -57,6 +57,11 @@ export const CreateMessage = ({ channelId }) => {
   return (
     <Container className='p-4 d-flex flex-column gap-3'>
       <Form onSubmit={handleSubmit}>
+        {showAlert && (
+          <Alert variant='success' style={{ height: '2rem', padding: 0 }}>
+            Message sent successfully!
+          </Alert>
+        )}
         <Form.Group controlId='messageInput' className='mb-3'>
           <Form.Control
             type='text'
@@ -100,11 +105,6 @@ export const CreateMessage = ({ channelId }) => {
           </div>
         </div>
       </Form>
-      {showAlert && (
-        <Alert variant='success' className='mt-3'>
-          Message sent successfully!
-        </Alert>
-      )}
     </Container>
   )
 }

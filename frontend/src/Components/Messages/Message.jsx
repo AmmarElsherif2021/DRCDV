@@ -68,7 +68,7 @@ const MessageContent = React.memo(
     return (
       <div
         className={`d-flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} align-items-start gap-2`}
-        style={{ maxWidth: '70%' }}
+        style={{ maxWidth: '93%' }}
       >
         {/* Only render Avatar for non-current users */}
         {!isCurrentUser && (

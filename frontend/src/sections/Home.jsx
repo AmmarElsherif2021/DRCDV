@@ -1,6 +1,6 @@
 import { ChatSpace } from './ChatSpace.jsx'
 import { Header } from '../Components/Header/Header.jsx'
-import { ChannelsBoard } from './ChannelsBoard.jsx'
+import { Sidebar } from './Sidebar.jsx'
 import { Container, Row, Col, Button, Offcanvas } from 'react-bootstrap'
 import { useUserHome } from '../contexts/UserHomeContext.jsx'
 import { useChannel } from '../contexts/ChannelContext'
@@ -113,7 +113,7 @@ export function Home() {
           )}
           <Row className='g-0 mt-5' style={{ height: '90vh' }}>
             <Col xs={2} md={2} className='d-none d-md-block'>
-              <ChannelsBoard />
+              <Sidebar />
             </Col>
             <Col
               xs={10}
@@ -140,7 +140,7 @@ export function Home() {
             }}
           >
             <Offcanvas.Body className='p-0'>
-              <ChannelsBoard />
+              <Sidebar />
             </Offcanvas.Body>
           </Offcanvas>
         </Container>

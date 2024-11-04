@@ -4,7 +4,7 @@ import { Home } from './sections/Home.jsx'
 import { Signup } from './sections/Signup'
 import { AuthContextProvider } from './contexts/AuthContext.jsx'
 import { Login } from './sections/Login.jsx'
-import { ChannelsBoard } from './sections/ChannelsBoard.jsx'
+import { Sidebar } from './sections/Sidebar.jsx'
 import './index.css'
 //import { Welcome } from './sections/Welcome.jsx'
 import { UserHomeProvider } from './contexts/UserHomeContext.jsx'
@@ -27,8 +27,8 @@ const router = createBrowserRouter([
     element: <Login />,
   },
   {
-    path: '/channelsBoard',
-    element: <ChannelsBoard />,
+    path: '/Sidebar',
+    element: <Sidebar />,
   },
 ])
 

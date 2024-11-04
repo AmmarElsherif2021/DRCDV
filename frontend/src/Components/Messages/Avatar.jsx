@@ -1,5 +1,5 @@
 import { Image } from 'react-bootstrap'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import personIcon from '../../assets/person-icon.svg'
 import { useChannel } from '../../contexts/ChannelContext'
 
@@ -11,38 +11,50 @@ export const Avatar = ({
 }) => {
   const { getAvatarState, fetchUserAvatar } = useChannel()
   const avatarState = getAvatarState(userId)
-  const [error, setError] = useState(false)
+  const [hasValidImage, setHasValidImage] = useState(false)
+  const previousUserIdRef = useRef(userId)
 
   useEffect(() => {
-    let mounted = true
+    // Reset state when userId changes
+    if (previousUserIdRef.current !== userId) {
+      setHasValidImage(false)
+      previousUserIdRef.current = userId
+    }
+
+    if (!userId || avatarState.status !== 'idle') return
 
     const loadAvatar = async () => {
-      if (!userId || avatarState.status !== 'idle') return
-
       try {
         await fetchUserAvatar(userId)
-        if (mounted) setError(false)
       } catch (err) {
-        if (mounted) setError(true)
         console.error('Failed to load avatar:', err)
       }
     }
 
     loadAvatar()
-
-    return () => {
-      mounted = false
-    }
   }, [userId, avatarState.status, fetchUserAvatar])
 
+  // Determine if we should show the placeholder
   const shouldShowPlaceholder =
     !userId ||
-    error ||
+    !hasValidImage ||
     avatarState.status === 'failed' ||
-    avatarState.status === 'idle' ||
-    !avatarState.url
+    !avatarState.url ||
+    (avatarState.status === 'loaded' && !avatarState.url)
 
   const isLoading = avatarState.status === 'loading'
+
+  const handleImageLoad = (e) => {
+    // Check if the loaded image has actual dimensions
+    const hasSize = e.target.naturalWidth > 0 && e.target.naturalHeight > 0
+    // Also check if the image isn't just a tiny 1x1 pixel
+    const isNotEmpty = e.target.naturalWidth > 1 && e.target.naturalHeight > 1
+    setHasValidImage(hasSize && isNotEmpty)
+  }
+
+  const handleImageError = () => {
+    setHasValidImage(false)
+  }
 
   return (
     <div
@@ -64,7 +76,8 @@ export const Avatar = ({
           opacity: isLoading ? 0.5 : 1,
           transition: 'opacity 0.2s ease-in-out',
         }}
-        onError={() => setError(true)}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
       />
       {showStatus && (
         <span
