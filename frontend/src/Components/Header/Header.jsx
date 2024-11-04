@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Navbar, Nav, Card, Button, Container } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
-import profileIcon from '../../assets/profile.svg'
+//import profileIcon from '../../assets/profile.svg'
 import logo from '../../assets/logo.svg'
 import { User } from '../../Components/User/User'
 import { jwtDecode } from 'jwt-decode'
@@ -92,11 +92,10 @@ export function Header() {
                 onClick={toggleProfile}
                 className='d-flex align-items-center text-decoration-none p-0'
               >
-                <img
-                  src={profileIcon}
-                  alt='Profile'
-                  className='rounded-circle'
-                  style={{ width: '2.5rem', height: '2.5rem' }}
+                <ProfileImage
+                  userId={userData.userId}
+                  size={50}
+                  showStatus={false}
                 />
               </Button>
               {showProfile && (

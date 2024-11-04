@@ -7,7 +7,7 @@ export const listChannels = async (queryParams) => {
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${queryParams.token}`, // Ensure token is included
+          Authorization: `Bearer ${queryParams.token}`,
         },
       },
     )
@@ -46,7 +46,7 @@ export const createChannel = async (token, channel) => {
     throw error
   }
 }
-
+//check if channel exists
 export const checkChannelExists = async (userId1, userId2) => {
   try {
     const queryString = new URLSearchParams({ userId1, userId2 }).toString()
@@ -62,7 +62,7 @@ export const checkChannelExists = async (userId1, userId2) => {
       throw new Error(`Error checking channel: ${res.statusText}`)
     }
     const data = await res.json()
-    return data.exists // Assuming your backend returns { exists: true/false }
+    return data.exists
   } catch (error) {
     console.error('Error checking channel:', error)
     throw error

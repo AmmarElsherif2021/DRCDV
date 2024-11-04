@@ -1,3 +1,4 @@
+//signup
 export const signup = async (formData) => {
   const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
     method: 'POST',
@@ -7,7 +8,7 @@ export const signup = async (formData) => {
   return await res.json()
 }
 
-// getUserProfileImage.js
+// getUserProfileImage api
 export const getUserProfileImage = async (userId) => {
   try {
     const response = await fetch(
@@ -24,6 +25,7 @@ export const getUserProfileImage = async (userId) => {
   }
 }
 
+//login
 export const login = async ({ username, password }) => {
   const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/login`, {
     method: 'POST',
