@@ -1,135 +1,124 @@
-import React, { useMemo } from 'react'
-import { ListGroup } from 'react-bootstrap'
-import { useChannel } from '../../contexts/ChannelContext'
-import { Avatar } from './Avatar'
-import EnhancedAttachment from './DataVisuals'
-import { User } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
 
-export const Message = React.memo(({ message, currentUserId }) => {
-  const { channelMembers, getAvatarState } = useChannel()
+const DataTable = ({ data }) => {
+  const [expanded, setExpanded] = useState(false)
+  const [scrollShadows, setScrollShadows] = useState({
+    left: false,
+    right: false,
+  })
+  const scrollContainerRef = useRef(null)
 
-  const sender = useMemo(() => {
-    const senderMember = channelMembers.find(
-      (m) => String(m._id || m.user) === String(message.sender._id),
-    )
-    return senderMember || message.sender
-  }, [message.sender._id, channelMembers])
+  // Handle scroll shadows
+  const updateScrollShadows = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current
+      setScrollShadows({
+        left: scrollLeft > 0,
+        right: scrollLeft < scrollWidth - clientWidth - 1,
+      })
+    }
+  }
 
-  const senderId = sender._id || sender
-  const isCurrentUser =
-    String(message.sender._id) === String(currentUserId) ||
-    String(currentUserId) === senderId
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current
+    if (scrollContainer) {
+      updateScrollShadows()
+      scrollContainer.addEventListener('scroll', updateScrollShadows)
+      window.addEventListener('resize', updateScrollShadows)
 
-  const messageStyle = useMemo(
-    () => ({
-      backgroundColor: isCurrentUser ? '#1CCB8F' : 'black',
-      color: isCurrentUser ? 'black' : 'white',
-      opacity: message.pending ? 0.7 : 1,
-      transform: message.pending ? 'scale(0.98)' : 'scale(1)',
-      padding: '0.75rem 0.75rem',
-      borderRadius: '1rem',
-      width: '100%',
-      transition: 'all 0.2s ease-in-out',
-      wordBreak: 'break-word',
-    }),
-    [isCurrentUser, message.pending],
-  )
+      return () => {
+        scrollContainer.removeEventListener('scroll', updateScrollShadows)
+        window.removeEventListener('resize', updateScrollShadows)
+      }
+    }
+  }, [])
 
-  const avatarState = getAvatarState(senderId)
+  if (!data?.labels || !data?.values) return null
 
   return (
-    <ListGroup.Item
-      className={`d-flex ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'} border-0 bg-transparent py-2`}
-    >
-      <MessageContent
-        message={message}
-        sender={sender}
-        senderId={senderId}
-        isCurrentUser={isCurrentUser}
-        style={messageStyle}
-        avatarState={avatarState}
-      />
-    </ListGroup.Item>
-  )
-})
-
-const MessageContent = React.memo(
-  ({ message, sender, senderId, isCurrentUser, style, avatarState }) => {
-    const isLoading = avatarState.status === 'loading'
-
-    return (
+    <div className='flex flex-col w-full'>
+      {/* Table Container */}
       <div
-        className={`d-flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} align-items-start gap-2`}
-        style={{ maxWidth: '93%' }}
-      >
-        {!isCurrentUser && (
-          <div className='flex-shrink-0'>
-            <Avatar
-              userId={senderId}
-              size={40}
-              showStatus={false}
-              style={{
-                border: message.pending ? '1px solid #e9ecef' : 'none',
-                opacity: isLoading ? 0.5 : 1,
-              }}
-            />
-            <div
-              style={{
-                fontSize: '10px',
-                color: '#666',
-                marginTop: '4px',
-                marginLeft: '0.75rem',
-              }}
-            >
-              {!isCurrentUser && <SenderName sender={sender} />}
-            </div>
-          </div>
-        )}
-        <div style={style}>
-          <div>{message.text}</div>
-          <div
-            className='message-attachments'
-            style={{
-              // Reset text color for attachments
-              color: 'initial',
-              // Add some spacing between message text and attachments
-              marginTop: message.text ? '0.5rem' : 0,
-            }}
-          >
-            <Attachments message={message} />
-          </div>
-        </div>
-      </div>
-    )
-  },
-)
-
-const SenderName = React.memo(({ sender }) => (
-  <small className='text-muted d-block mb-1'>
-    {sender.username || <User size={16} />}
-  </small>
-))
-
-const Attachments = React.memo(({ message }) => (
-  <>
-    {message.attachments?.map((attachment, i) => (
-      <div
-        key={`${message._id}-attachment-${i}`}
-        className='mt-2'
+        className={`relative transition-all duration-300 ease-in-out`}
         style={{
-          maxWidth: '100%',
-          overflow: 'auto',
-          // Ensure table text is always readable
-          backgroundColor: 'white',
-          borderRadius: '0.5rem',
-          // Add some padding around the attachment
-          padding: '0.5rem',
+          maxHeight: expanded ? '80vh' : '50vh',
+          minHeight: '200px',
         }}
       >
-        <EnhancedAttachment attachment={attachment} />
-      </div>
-    ))}
-  </>
-))
+        {/* Scroll Shadows */}
+        <div
+          className={`absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-200 ${
+            scrollShadows.left ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+        <div
+          className={`absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-200 ${
+            scrollShadows.right ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
 
-export default Message
+        {/* Table Wrapper */}
+        <div
+          ref={scrollContainerRef}
+          className='overflow-auto w-full h-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
+        >
+          <table className='min-w-full table-auto border-collapse'>
+            <thead>
+              <tr className='bg-gray-50'>
+                {data.labels.map((header, index) => (
+                  <th
+                    key={index}
+                    className='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 shadow-sm z-20'
+                    style={{ minWidth: '120px' }}
+                  >
+                    <div className='flex items-center justify-between'>
+                      <span className='truncate'>{header}</span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className='bg-white divide-y divide-gray-200'>
+              {data.values.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className='hover:bg-gray-50 transition-colors duration-150'
+                >
+                  {row.map((value, cellIndex) => (
+                    <td
+                      key={cellIndex}
+                      className='px-4 py-2.5 text-sm text-gray-900 truncate max-w-xs'
+                    >
+                      <div className='truncate'>{value?.toString()}</div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Expand/Collapse Button */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className='w-full text-center py-2 hover:bg-gray-100 text-gray-500 border-t transition-colors duration-150 flex items-center justify-center gap-1'
+      >
+        {expanded ? (
+          <>
+            <ChevronUp size={16} />
+            <span className='text-sm'>Show Less</span>
+          </>
+        ) : (
+          <>
+            <ChevronDown size={16} />
+            <span className='text-sm'>Show More</span>
+          </>
+        )}
+      </button>
+    </div>
+  )
+}
+
+export default DataTable

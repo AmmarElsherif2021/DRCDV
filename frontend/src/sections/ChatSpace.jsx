@@ -11,7 +11,6 @@ import {
   Dropdown,
 } from 'react-bootstrap'
 import { ProfileImage } from '../Components/User/ProfileImage.jsx'
-
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
 import { getMessagesByChannelId } from '../API/messages.js'
@@ -19,7 +18,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import { useSocket } from '../contexts/SocketContext.jsx'
 import userAvatar from '../assets/profile.svg'
 import sendGif from '../assets/startSending.json'
-import Lottie from 'react-lottie'
+import { Player } from '@lottiefiles/react-lottie-player'
 import channelAvatar from '../assets/group-icon.svg'
 import { jwtDecode } from 'jwt-decode'
 import MessagingList from '../Components/Messages/MessageList.jsx'
@@ -179,14 +178,19 @@ export const ChatSpace = ({ channelId }) => {
         <div
           style={{
             position: 'relative',
-            width: '30%',
+            width: '65%',
             height: 'auto',
             //marginBottom: '2rem',
             zIndex: 0,
             overflow: 'hidden',
           }}
         >
-          <Lottie options={defaultOptions} />
+          <Player
+            autoplay={defaultOptions.autoplay}
+            loop={defaultOptions.loop}
+            src={defaultOptions.animationData}
+            style={{ height: '12rem', width: '12rem' }}
+          />
         </div>
         <h1
           style={{
