@@ -77,7 +77,7 @@ export function Header() {
       bg='light'
       expand='lg'
       className='shadow-sm'
-      style={{ height: '4rem' }}
+      style={{ height: '4.2rem' }}
     >
       <Container fluid>
         <Navbar.Brand href='/'>

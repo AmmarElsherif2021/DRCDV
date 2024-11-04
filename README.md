@@ -6,11 +6,11 @@ Welcome to the documentation for **DRCDV**, the **Dynamic and Responsive Chat Ap
 
 - **Purpose**:
 
-This project aims to develop a front-end for a chat application using React, focusing on creating a dynamic, interactive UI that seamlessly integrates with back-end services. The application supports text messages and visualizes various data types (tabular, images, text, etc.) dynamically within the chat interface.
+This project aims to develop a chat application using React, focusing on creating a dynamic, interactive UI that seamlessly integrates with back-end services. The application supports text messages and visualizes various data types (tabular, images, text, etc.) dynamically within the chat interface.
 
 - **Scope**:
 
-The documentation provided includes a system overview, installation and setup instructions, usage guidelines, API details, code documentation, as well as deployment and testing procedures.
+The documentation provided includes a system overview, usage guidelines, API details, code documentation, as well as deployment and testing procedures.
 
 #### **2. System Overview**
 
@@ -23,6 +23,49 @@ Note that the main driving assumption is that **DRCDV is a sub-application withi
 ## **3. Installation and Setup**
 
 ## **4. Usage Guidelines**
+
+1. **Sign Up**  
+   Users must sign up to access all features of the **DRCDV** subsystem.  
+   ![S](/screens/s1.jpeg "Screen")
+   ![S](/screens/s2.jpeg "Screen")
+2. **Log In**  
+   After registering with a unique username, email, and password, users can log in with their credentials and confirm adding all connections on the system.  
+   ![S](/screens/s3.jpeg "Screen")
+
+3. **Add Connections**  
+   By clicking the **Add connections** button from the sidebar, a channel is automatically created between the user and every other user on the subsystem.  
+   ![S](/screens/s4.jpeg "Screen")
+
+4. **Open Single Connection**  
+    Users can open any single connection channel from the connections list button on the sidebar to start messaging any individual user on DRCDV.  
+   ![S](/screens/s5.jpeg "Screen")
+   ![S](/screens/s6.jpeg "Screen")
+   ![S](/screens/s7.jpeg "Screen")
+
+5. **Create Multi-User Channel**  
+   Users can create a channel and add multiple users, with the option to customize the role of the channel members as either **admin** or **guest**.  
+   ![S](/screens/s13.jpeg "Screen")
+   ![S](/screens/s14.jpeg "Screen")
+   ![S](/screens/s15.jpeg "Screen")
+   ![S](/screens/s16.jpeg "Screen")
+   ![S](/screens/s17.jpeg "Screen")
+   ![S](/screens/s18.jpeg "Screen")
+
+6. **Access Channels**  
+   From the channels list button on the sidebar, users can access the selected channel and start messaging.  
+   ![Access Channels Image Placeholder](#)
+
+7. **Create Instant Message**  
+   Users can create an instant text message with the possibility to add downloadable attachments. Only images and CSV tables can be rendered in the message body.  
+   ![S](/screens/s7.jpeg "Screen")
+   ![S](/screens/s8.jpeg "Screen")
+   ![S](/screens/s9.jpeg "Screen")
+
+8. **Display Data Visualizations**  
+   If the attachment is a CSV table, users have the option to display three different data visualization previews.  
+   ![S](/screens/s10.jpeg "Screen")
+   ![S](/screens/s11.jpeg "Screen")
+   ![S](/screens/s12.jpeg "Screen")
 
 ## **5. API Details**
 
@@ -289,7 +332,7 @@ The message creation process starts in the `CreateMessage` component and follows
 1. Message sent to server via socket:
 
 ```javascript
-socket.emit('createMessage', {
+socket.emit("createMessage", {
   userId,
 
   channelId,
@@ -301,7 +344,7 @@ socket.emit('createMessage', {
 
     tempId,
   },
-})
+});
 ```
 
 2. Server processes message and emits 'messageCreated' event
@@ -477,33 +520,3 @@ Smooth scrolling to new messages
 ## **9. Troubleshooting**
 
 ## **10. Contributing**
-
-## **11. License**
-
-## **12. Acknowledgements**
-
-## UML diagrams
-
-placeholder render UML diagrams using [Mermaid](https://mermaidjs.github.io/). For example, this will produce a sequence diagram:
-
-```mermaid
-sequenceDiagram
-Alice ->> Bob: Hello Bob, how are you?
-Bob-->>John: How about you John?
-Bob--x Alice: I am good thanks!
-Bob-x John: I am good thanks!
-Note right of John: Bob thinks a long<br/>long time, so long<br/>that the text does<br/>not fit on a row.
-
-Bob-->Alice: Checking with John...
-Alice->John: Yes... John, how are you?
-```
-
-And this will produce a flow chart:
-
-```mermaid
-graph LR
-A[Square Rect] -- Link text --> B((Circle))
-A --> C(Round Rect)
-B --> D{Rhombus}
-C --> D
-```

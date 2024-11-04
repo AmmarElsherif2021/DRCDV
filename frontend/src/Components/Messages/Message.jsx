@@ -5,13 +5,9 @@ import { Avatar } from './Avatar'
 import EnhancedAttachment from './DataVisuals'
 import { User } from 'lucide-react'
 
-/**
- * Renders an individual message with sender info, avatar, and attachments
- */
 export const Message = React.memo(({ message, currentUserId }) => {
   const { channelMembers, getAvatarState } = useChannel()
 
-  // Resolve message sender
   const sender = useMemo(() => {
     const senderMember = channelMembers.find(
       (m) => String(m._id || m.user) === String(message.sender._id),
@@ -24,7 +20,6 @@ export const Message = React.memo(({ message, currentUserId }) => {
     String(message.sender._id) === String(currentUserId) ||
     String(currentUserId) === senderId
 
-  // Message styling based on sender and status
   const messageStyle = useMemo(
     () => ({
       backgroundColor: isCurrentUser ? '#1CCB8F' : 'black',
@@ -34,6 +29,7 @@ export const Message = React.memo(({ message, currentUserId }) => {
       padding: '0.75rem 0.75rem',
       borderRadius: '1rem',
       width: '100%',
+
       transition: 'all 0.2s ease-in-out',
       wordBreak: 'break-word',
     }),
@@ -58,9 +54,6 @@ export const Message = React.memo(({ message, currentUserId }) => {
   )
 })
 
-/**
- * Message content component including avatar and attachments
- */
 const MessageContent = React.memo(
   ({ message, sender, senderId, isCurrentUser, style, avatarState }) => {
     const isLoading = avatarState.status === 'loading'
@@ -68,9 +61,8 @@ const MessageContent = React.memo(
     return (
       <div
         className={`d-flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} align-items-start gap-2`}
-        style={{ maxWidth: '93%' }}
+        style={{ maxWidth: '97%' }}
       >
-        {/* Only render Avatar for non-current users */}
         {!isCurrentUser && (
           <div className='flex-shrink-0'>
             <Avatar
@@ -90,19 +82,23 @@ const MessageContent = React.memo(
                 marginLeft: '0.75rem',
               }}
             >
-              {/**isLoading
-                ? 'Loading...'
-                : avatarState.status === 'loaded'
-                  ? 'Avatar loaded'
-                  : 'No avatar data' */}
-
               {!isCurrentUser && <SenderName sender={sender} />}
             </div>
           </div>
         )}
         <div style={style}>
           <div>{message.text}</div>
-          <Attachments message={message} />
+          <div
+            className='message-attachments'
+            style={{
+              // text color for attachments
+              color: 'initial',
+
+              marginTop: message.text ? '0.5rem' : 0,
+            }}
+          >
+            <Attachments message={message} />
+          </div>
         </div>
       </div>
     )
@@ -121,7 +117,15 @@ const Attachments = React.memo(({ message }) => (
       <div
         key={`${message._id}-attachment-${i}`}
         className='mt-2'
-        style={{ maxWidth: '100%', overflow: 'auto' }}
+        style={{
+          maxWidth: '100%',
+          overflow: 'auto',
+
+          backgroundColor: 'white',
+          borderRadius: '0.5rem',
+
+          padding: '0.5rem',
+        }}
       >
         <EnhancedAttachment attachment={attachment} />
       </div>
