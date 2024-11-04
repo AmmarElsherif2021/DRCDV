@@ -9,8 +9,7 @@ import { User } from 'lucide-react'
  * Renders an individual message with sender info, avatar, and attachments
  */
 export const Message = React.memo(({ message, currentUserId }) => {
-  const { channelMembers, fetchUserAvatar, userAvatars, loadingAvatars } =
-    useChannel()
+  const { channelMembers, getAvatarState } = useChannel()
 
   // Resolve message sender
   const sender = useMemo(() => {
@@ -24,13 +23,6 @@ export const Message = React.memo(({ message, currentUserId }) => {
   const isCurrentUser =
     String(message.sender._id) === String(currentUserId) ||
     String(currentUserId) === senderId
-
-  // Fetch avatar if not already loaded
-  React.useEffect(() => {
-    if (senderId && !userAvatars[senderId] && !loadingAvatars[senderId]) {
-      fetchUserAvatar(senderId)
-    }
-  }, [senderId, fetchUserAvatar, userAvatars, loadingAvatars])
 
   // Message styling based on sender and status
   const messageStyle = useMemo(
@@ -48,6 +40,8 @@ export const Message = React.memo(({ message, currentUserId }) => {
     [isCurrentUser, message.pending],
   )
 
+  const avatarState = getAvatarState(senderId)
+
   return (
     <ListGroup.Item
       className={`d-flex ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'} border-0 bg-transparent py-2`}
@@ -58,8 +52,7 @@ export const Message = React.memo(({ message, currentUserId }) => {
         senderId={senderId}
         isCurrentUser={isCurrentUser}
         style={messageStyle}
-        avatarData={userAvatars[senderId]}
-        isLoadingAvatar={loadingAvatars[senderId]}
+        avatarState={avatarState}
       />
     </ListGroup.Item>
   )
@@ -69,39 +62,51 @@ export const Message = React.memo(({ message, currentUserId }) => {
  * Message content component including avatar and attachments
  */
 const MessageContent = React.memo(
-  ({
-    message,
-    sender,
-    senderId,
-    isCurrentUser,
-    style,
-    avatarData,
-    isLoadingAvatar,
-  }) => (
-    <div
-      className={`d-flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} align-items-start gap-2`}
-      style={{ maxWidth: '70%' }}
-    >
-      <div className='flex-shrink-0'>
-        <Avatar
-          userId={senderId}
-          size={40}
-          showStatus={false}
-          style={{
-            border: message.pending ? '1px solid #e9ecef' : 'none',
-            opacity: isLoadingAvatar ? 0.5 : 1,
-          }}
-          imageUrl={avatarData?.url}
-          fallback={sender.username?.[0]?.toUpperCase() || '?'}
-        />
+  ({ message, sender, senderId, isCurrentUser, style, avatarState }) => {
+    const isLoading = avatarState.status === 'loading'
+
+    return (
+      <div
+        className={`d-flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} align-items-start gap-2`}
+        style={{ maxWidth: '70%' }}
+      >
+        {/* Only render Avatar for non-current users */}
+        {!isCurrentUser && (
+          <div className='flex-shrink-0'>
+            <Avatar
+              userId={senderId}
+              size={40}
+              showStatus={false}
+              style={{
+                border: message.pending ? '1px solid #e9ecef' : 'none',
+                opacity: isLoading ? 0.5 : 1,
+              }}
+            />
+            <div
+              style={{
+                fontSize: '10px',
+                color: '#666',
+                marginTop: '4px',
+                marginLeft: '0.75rem',
+              }}
+            >
+              {/**isLoading
+                ? 'Loading...'
+                : avatarState.status === 'loaded'
+                  ? 'Avatar loaded'
+                  : 'No avatar data' */}
+
+              {!isCurrentUser && <SenderName sender={sender} />}
+            </div>
+          </div>
+        )}
+        <div style={style}>
+          <div>{message.text}</div>
+          <Attachments message={message} />
+        </div>
       </div>
-      <div style={style}>
-        {!isCurrentUser && <SenderName sender={sender} />}
-        <div>{message.text}</div>
-        <Attachments message={message} />
-      </div>
-    </div>
-  ),
+    )
+  },
 )
 
 const SenderName = React.memo(({ sender }) => (

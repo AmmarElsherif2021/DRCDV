@@ -1,21 +1,34 @@
-import { createContext, useContext, useState, useCallback, useRef } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react'
 import { getUserProfileImage } from '../API/users'
+
+const ChannelContext = createContext(null)
 
 const initialState = {
   selectedChannel: null,
   channelMessages: [],
   channelMembers: [],
-  userAvatars: {},
-  loadingAvatars: {},
-  failedAvatars: {},
+  avatarState: {},
   attachmentCache: new Map(),
+  seenMembers: new Set(), // Track all members we've seen across channels
 }
 
-const ChannelContext = createContext(undefined)
+const AVATAR_STATUS = {
+  LOADING: 'loading',
+  LOADED: 'loaded',
+  FAILED: 'failed',
+  IDLE: 'idle',
+}
 
-export function useChannel() {
+export const useChannel = () => {
   const context = useContext(ChannelContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useChannel must be used within a ChannelProvider')
   }
   return context
@@ -24,89 +37,163 @@ export function useChannel() {
 export function ChannelProvider({ children }) {
   const [state, setState] = useState(initialState)
   const attachmentCacheRef = useRef(new Map())
+  const avatarLoadingQueue = useRef(new Set())
+  const seenMembersRef = useRef(new Set())
 
   const updateState = useCallback((updates) => {
     setState((prev) => ({ ...prev, ...updates }))
   }, [])
 
-  const cacheManager = {
-    addAttachment: useCallback((messageId, attachment) => {
-      attachmentCacheRef.current.set(
-        `${messageId}-${attachment.filename}`,
-        attachment,
-      )
-      setState((prev) => ({ ...prev })) // Trigger minimal re-render
-    }, []),
-
-    getAttachment: useCallback((messageId, filename) => {
-      return attachmentCacheRef.current.get(`${messageId}-${filename}`)
-    }, []),
-  }
-
   const avatarManager = {
+    getAvatarState: useCallback(
+      (userId) => {
+        return state.avatarState[userId] || { status: AVATAR_STATUS.IDLE }
+      },
+      [state.avatarState],
+    ),
+
+    setAvatarState: useCallback(
+      (userId, status, url = null) => {
+        updateState({
+          avatarState: {
+            ...state.avatarState,
+            [userId]: { status, url },
+          },
+        })
+      },
+      [updateState, state.avatarState],
+    ),
+
     fetchOne: useCallback(
       async (userId) => {
-        if (
-          !userId ||
-          state.userAvatars[userId] ||
-          state.loadingAvatars[userId] ||
-          state.failedAvatars[userId]
-        ) {
-          return state.userAvatars[userId] || null
+        if (!userId) return null
+
+        const currentState = avatarManager.getAvatarState(userId)
+
+        // Clear existing avatar state when starting a new fetch
+        if (currentState.status === AVATAR_STATUS.LOADED) {
+          if (currentState.url?.startsWith('blob:')) {
+            URL.revokeObjectURL(currentState.url)
+          }
         }
 
-        updateState({
-          loadingAvatars: { ...state.loadingAvatars, [userId]: true },
-        })
+        // Skip if already loading
+        if (avatarLoadingQueue.current.has(userId)) {
+          return null
+        }
+
+        // Set loading state and add to queue
+        avatarLoadingQueue.current.add(userId)
+        avatarManager.setAvatarState(userId, AVATAR_STATUS.LOADING)
 
         try {
-          const avatarData = await getUserProfileImage(userId)
-          if (avatarData) {
-            updateState((prev) => ({
-              userAvatars: { ...prev.userAvatars, [userId]: avatarData },
-            }))
-            return avatarData
+          const blob = await getUserProfileImage(userId)
+
+          // Check if the blob is empty or too small (likely a 1x1 pixel)
+          if (!blob || blob.size < 100) {
+            // Adjust size threshold as needed
+            avatarManager.setAvatarState(userId, AVATAR_STATUS.FAILED)
+            return null
           }
+
+          const avatarUrl = URL.createObjectURL(blob)
+
+          // Create a temporary image to verify the loaded image
+          return new Promise((resolve) => {
+            const img = new Image()
+            img.onload = () => {
+              // Check if image has valid dimensions
+              if (img.width <= 1 || img.height <= 1) {
+                URL.revokeObjectURL(avatarUrl)
+                avatarManager.setAvatarState(userId, AVATAR_STATUS.FAILED)
+                resolve(null)
+              } else {
+                avatarManager.setAvatarState(
+                  userId,
+                  AVATAR_STATUS.LOADED,
+                  avatarUrl,
+                )
+                resolve(avatarUrl)
+              }
+            }
+            img.onerror = () => {
+              URL.revokeObjectURL(avatarUrl)
+              avatarManager.setAvatarState(userId, AVATAR_STATUS.FAILED)
+              resolve(null)
+            }
+            img.src = avatarUrl
+          })
         } catch (error) {
           console.error(`Failed to fetch avatar for user ${userId}:`, error)
-          updateState((prev) => ({
-            failedAvatars: { ...prev.failedAvatars, [userId]: true },
-          }))
+          avatarManager.setAvatarState(userId, AVATAR_STATUS.FAILED)
+          return null
         } finally {
-          updateState((prev) => ({
-            loadingAvatars: { ...prev.loadingAvatars, [userId]: false },
-          }))
+          avatarLoadingQueue.current.delete(userId)
         }
-        return null
       },
-      [state.userAvatars, state.loadingAvatars, state.failedAvatars],
+      [updateState],
     ),
 
-    prefetchMany: useCallback(
-      async (members) => {
-        if (!members?.length) return
+    prefetchMany: useCallback(async (members) => {
+      if (!members?.length) return
 
-        const memberIds = members
-          .map((member) => member._id || member.user)
-          .filter(
-            (id) =>
-              id &&
-              !state.userAvatars[id] &&
-              !state.loadingAvatars[id] &&
-              !state.failedAvatars[id],
+      const memberIds = members
+        .map((member) => member.user || member._id)
+        .filter((id) => {
+          if (!id || seenMembersRef.current.has(id)) return false
+
+          const state = avatarManager.getAvatarState(id)
+          // Always refetch failed states when switching channels
+          return (
+            state.status === AVATAR_STATUS.IDLE ||
+            state.status === AVATAR_STATUS.FAILED
           )
+        })
 
-        if (memberIds.length === 0) return
+      if (memberIds.length === 0) return
 
-        const batchSize = 3
-        for (let i = 0; i < memberIds.length; i += batchSize) {
-          const batch = memberIds.slice(i, i + batchSize)
-          await Promise.all(batch.map(avatarManager.fetchOne))
+      // Clear seen members when processing new batch
+      seenMembersRef.current.clear()
+      memberIds.forEach((id) => seenMembersRef.current.add(id))
+
+      // Process in smaller batches
+      const batchSize = 2
+      for (let i = 0; i < memberIds.length; i += batchSize) {
+        const batch = memberIds.slice(i, i + batchSize)
+        await Promise.all(batch.map(avatarManager.fetchOne))
+        // Small delay between batches
+        if (i + batchSize < memberIds.length) {
+          await new Promise((resolve) => setTimeout(resolve, 100))
         }
-      },
-      [state.userAvatars, state.loadingAvatars, state.failedAvatars],
-    ),
+      }
+    }, []),
   }
+
+  // Channel member management with optimized avatar handling
+  const setChannelMembers = useCallback(
+    (members) => {
+      if (!members?.length) return
+
+      // Update channel members
+      updateState({ channelMembers: members })
+
+      // Start prefetching avatars
+      avatarManager.prefetchMany(members)
+    },
+    [updateState],
+  )
+
+  // Cleanup URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      Object.values(state.avatarState).forEach((avatarState) => {
+        if (avatarState.url?.startsWith('blob:')) {
+          URL.revokeObjectURL(avatarState.url)
+        }
+      })
+      seenMembersRef.current.clear()
+    }
+  }, [])
 
   const value = {
     ...state,
@@ -116,21 +203,25 @@ export function ChannelProvider({ children }) {
     ),
     setChannelMessages: useCallback((messages) => {
       setState((prev) => {
-        // Only update if messages have actually changed
         if (JSON.stringify(prev.channelMessages) === JSON.stringify(messages)) {
           return prev
         }
         return { ...prev, channelMessages: messages }
       })
     }, []),
-    setChannelMembers: useCallback(
-      (members) => updateState({ channelMembers: members }),
-      [],
-    ),
+    setChannelMembers,
+    getAvatarState: avatarManager.getAvatarState,
     fetchUserAvatar: avatarManager.fetchOne,
     prefetchMemberAvatars: avatarManager.prefetchMany,
-    addAttachmentToCache: cacheManager.addAttachment,
-    getCachedAttachment: cacheManager.getAttachment,
+    addAttachmentToCache: useCallback((attachmentId, data) => {
+      attachmentCacheRef.current.set(attachmentId, data)
+    }, []),
+    getCachedAttachment: useCallback((attachmentId) => {
+      return attachmentCacheRef.current.get(attachmentId)
+    }, []),
+    clearAttachmentCache: useCallback(() => {
+      attachmentCacheRef.current.clear()
+    }, []),
   }
 
   return (
