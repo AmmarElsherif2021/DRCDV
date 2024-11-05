@@ -54,7 +54,7 @@ The main driving assumption is that **DRCDV is a sub-application within a larger
 
 6. **Access Channels**  
    From the channels list button on the sidebar, users can access the selected channel and start messaging.  
-   ![Access Channels Image Placeholder](#)
+   
 
 7. **Create Instant Message**  
    Users can create an instant text message with the possibility to add downloadable attachments. Only images and CSV tables can be rendered in the message body.  
