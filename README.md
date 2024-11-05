@@ -6,19 +6,19 @@ Welcome to the documentation for **DRCDV**, the **Dynamic and Responsive Chat Ap
 
 - **Purpose**:
 
-This project aims to develop a chat application using React, focusing on creating a dynamic, interactive UI that seamlessly integrates with back-end services. The application supports text messages and visualizes various data types (tabular, images, text, etc.) dynamically within the chat interface.
+DRVDV is a chat application developed using React, Socket.IO, Node.js/Express, and MongoDB. It aims to create a dynamic, interactive user interface that seamlessly integrates with back-end services. The application supports text messaging and dynamic visualization of various data types within the chat interface, such as tables, images, and text.
 
 - **Scope**:
 
-The documentation provided includes a system overview, usage guidelines, API details, code documentation, as well as deployment and testing procedures.
+The documentation provided includes a system overview, usage guidelines, API details, code documentation, and deployment and testing procedures.
 
 #### **2. System Overview**
 
 - **Project Description**:
 
-The application primarily offers a list of users, allowing the initiation of chats with one or more individuals. Users can exchange text messages, images, data visualization files, and code snippets. However, all users must register their credentials to access the chat space and connect with others.
+The application primarily offers a list of users and allows the initiation of chats with one or more individuals. Users can exchange text messages, images, data visualization files, and code snippets. However, all users must register their credentials to access the chat space and connect with others.
 
-Note that the main driving assumption is that **DRCDV is a sub-application within a larger-scaled business platform**, so all users recorded in the database are contactable.
+The main driving assumption is that **DRCDV is a sub-application within a larger-scaled business platform**, so all users recorded in the database are contactable.
 
 ## **3. Installation and Setup**
 
