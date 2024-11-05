@@ -21,7 +21,7 @@ The application primarily offers a list of users and allows the initiation of ch
 
 The main driving assumption is that **DRCDV is a sub-application within a larger-scaled business platform**, so all users recorded in the database are contactable.
 
-## **3. Installation and Setup**
+
 ## **3. Installation and Setup**
 
 ### **Prerequisites**
