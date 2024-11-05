@@ -22,6 +22,217 @@ The application primarily offers a list of users and allows the initiation of ch
 The main driving assumption is that **DRCDV is a sub-application within a larger-scaled business platform**, so all users recorded in the database are contactable.
 
 ## **3. Installation and Setup**
+## **3. Installation and Setup**
+
+### **Prerequisites**
+
+Before you start, ensure you have the following installed on your machine:
+
+-   **[Node.js](https://Node.js)** (version 18 or above)
+    
+-   **npm** (version 8 or above)
+    
+-   **MongoDB** (or use MongoDB Atlas for a cloud database)
+    
+-   **Docker** (for containerization)
+    
+-   **Git**
+    
+
+### **Clone the Repository**
+
+1.  Open your terminal and clone the repository:
+    
+    sh
+    
+    ```
+    git clone https://github.com/yourusername/DRCDV.git
+    
+    ```
+    
+2.  Navigate into the project directory:
+    
+    sh
+    
+    ```
+    cd DRCDV
+    
+    ```
+    
+
+### **Backend Setup with Docker**
+
+1.  Navigate to the backend directory:
+    
+    sh
+    
+    ```
+    cd backend
+    
+    ```
+    
+2.  Create a `.env` file in the backend directory and add your environment variables:
+    
+    sh
+    
+    ```
+    touch .env
+    
+    ```
+    
+    Example `.env` file:
+    
+    ```
+    DATABASE_URL="YOUR MONGO URI"
+    JWT_SECRET="****"
+    PORT=3001
+    
+    ```
+    
+3.  Build the Docker image:
+    
+    sh
+    
+    ```
+    docker build -t drcdv-backend .
+    
+    ```
+    
+4.  Run the Docker container:
+    
+    sh
+    
+    ```
+    docker run -d -p 3001:3001 --name drcdv-backend --env-file .env drcdv-backend
+    
+    ```
+    
+
+### **Frontend Setup with Docker**
+
+1.  Navigate to the frontend directory:
+    
+    sh
+    
+    ```
+    cd frontend
+    
+    ```
+    
+2.  Create a `.env` file in the frontend directory and add your environment variables:
+    
+    sh
+    
+    ```
+    touch .env
+    
+    ```
+    
+    Example `.env` file:
+    
+    ```
+    VITE_BACKEND_URL="http://localhost:3001/api/v1"
+    VITE_SOCKET_HOST="http://localhost:3001"
+    
+    ```
+    
+3.  Build the Docker image:
+    
+    sh
+    
+    ```
+    docker build -t drcdv-frontend .
+    
+    ```
+    
+4.  Run the Docker container:
+    
+    sh
+    
+    ```
+    docker run -d -p 80:80 --name drcdv-frontend --env-file .env drcdv-frontend
+    
+    ```
+    
+
+### **Deploying to Vercel and Render**
+
+#### **Backend Deployment to Render**
+
+1.  Login to your Render account.
+    
+2.  Create a new Web Service.
+    
+3.  Connect your GitHub repository and choose the `backend` directory for deployment.
+    
+4.  Set the environment variables in the Render dashboard:
+    
+    -   `DATABASE_URL`
+        
+    -   `JWT_SECRET`
+        
+    -   `PORT`
+        
+5.  Deploy your backend service.
+    
+
+#### **Frontend Deployment to Vercel**
+
+1.  Login to your Vercel account.
+    
+2.  Create a new Project.
+    
+3.  Connect your GitHub repository and choose the `frontend` directory for deployment.
+    
+4.  Set the environment variables in the Vercel dashboard:
+    
+    -   `VITE_BACKEND_URL`
+        
+    -   `VITE_SOCKET_HOST`
+        
+5.  Deploy your frontend application.
+    
+
+### **Running Locally**
+
+To run the application locally for development and testing without Docker:
+
+1.  **Backend**:
+    
+    sh
+    
+    ```
+    cd backend
+    npm install
+    npm start
+    
+    ```
+    
+2.  **Frontend**:
+    
+    sh
+    
+    ```
+    cd frontend
+    npm install
+    npm start
+    
+    ```
+    
+
+### **Accessing the Application**
+
+Once both the backend and front end are deployed, you can access your application using the URL provided by Vercel for the front end and Render for the back end.
+
+### **Common Issues and Troubleshooting**
+
+-   **Issue**: Backend service not connecting to MongoDB.
+    
+    -   **Solution**: Check your MongoDB URI and ensure your database service is running.
+        
+-   **Issue**: Frontend not connecting to backend API.
+    
+    -   **Solution**: Verify the API URL in the `.env` file and ensure the backend service is accessible.
 
 ## **4. Usage Guidelines**
 
