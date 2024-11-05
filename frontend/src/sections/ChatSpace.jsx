@@ -212,17 +212,25 @@ export const ChatSpace = ({ channelId }) => {
         position: 'relative',
         left: '-16%',
         top: '1rem',
-        height: '90%',
+        height: '98%',
         width: '110%',
         margin: 0,
-        //backgroundColor: '#332312',
+        //backgroundColor: '#33ff12',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
       }}
     >
       <Row>
         <Col>
           <div
             className='d-flex justify-content-between align-items-center mb-3'
-            style={{ height: '3.5rem', padding: 0 }}
+            style={{
+              height: '3rem',
+              width: '100%',
+              padding: 0,
+              //backgroundColor: '#333333',
+            }}
           >
             {ChannelTitle}
           </div>

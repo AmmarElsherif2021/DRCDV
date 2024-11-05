@@ -40,7 +40,7 @@ const MessageList = React.memo(({ messages, currentUserId, isLoading }) => {
   return (
     <ListGroup
       style={{
-        height: '54vh',
+        height: '65vh',
         overflowY: 'auto',
         scrollBehavior: 'smooth',
         padding: '1rem',

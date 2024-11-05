@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Form, Container, Alert, Button } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
 import { useMessageManagement } from './useMessageManagement'
@@ -55,55 +55,62 @@ export const CreateMessage = ({ channelId }) => {
   }
 
   return (
-    <Container className='p-4 d-flex flex-column gap-3'>
+    <Container
+      className='p-4 d-flex flex-column gap-3'
+      style={{
+        height: '6rem',
+        //backgroundColor: '#86ddd3',
+        margin: '0.3rem',
+      }}
+    >
       <Form onSubmit={handleSubmit}>
         {showAlert && (
           <Alert variant='success' style={{ height: '2rem', padding: 0 }}>
             Message sent successfully!
           </Alert>
         )}
-        <Form.Group controlId='messageInput' className='mb-3'>
-          <Form.Control
-            type='text'
-            placeholder='Type your message...'
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-        </Form.Group>
-        <div className='d-flex flex-column flex-md-row gap-3'>
-          <div className='flex-grow-1'>
-            <Form.Group controlId='fileInput' className='mb-0'>
-              <div className='d-flex align-items-center gap-3'>
-                <Form.Control
-                  type='file'
-                  multiple
-                  onChange={handleAttachmentChange}
-                  style={{ cursor: 'pointer' }}
-                />
-                <Button
-                  variant='primary'
-                  type='submit'
-                  disabled={!text.trim() || sending}
-                  style={{
-                    backgroundColor: '#1CCB8F',
-                    color: 'black',
-                    border: 'none',
-                    whiteSpace: 'nowrap',
-                    minWidth: '100px',
-                  }}
-                >
-                  {sending ? 'Sending...' : 'Send'}
-                </Button>
-              </div>
-              {attachments.length > 0 && (
-                <div className='d-flex align-items-center gap-2 mt-2'>
-                  <Paperclip color='#1CCB8F' size={20} />
-                  <span>{attachments.length} attachment(s)</span>
-                </div>
-              )}
-            </Form.Group>
-          </div>
+        <div className='d-flex align-items-center gap-3'>
+          <Form.Group controlId='messageInput' className='mb-0 flex-grow-1'>
+            <Form.Control
+              type='text'
+              placeholder='Type your message...'
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              style={{ width: '35vw' }}
+            />
+          </Form.Group>
+          <Form.Group
+            controlId='fileInput'
+            className='mb-0 d-flex align-items-center gap-3'
+          >
+            <Form.Control
+              type='file'
+              multiple
+              onChange={handleAttachmentChange}
+              style={{ cursor: 'pointer', width: '20vw' }}
+            />
+            <Button
+              variant='primary'
+              type='submit'
+              disabled={!text.trim() || sending}
+              style={{
+                backgroundColor: '#1CCB8F',
+                color: 'black',
+                border: 'none',
+                whiteSpace: 'nowrap',
+                minWidth: '100px',
+              }}
+            >
+              {sending ? 'Sending...' : 'Send'}
+            </Button>
+          </Form.Group>
         </div>
+        {attachments.length > 0 && (
+          <div className='d-flex align-items-center gap-2 mt-2'>
+            <Paperclip color='#1CCB8F' size={20} />
+            <span>{attachments.length} attachment(s)</span>
+          </div>
+        )}
       </Form>
     </Container>
   )
