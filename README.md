@@ -1,5 +1,6 @@
 # DRCDV Technical Documentation (UNDER DEVELOPMENT!)
-https://drcdv.vercel.app/ 
+
+https://drcdv.vercel.app/
 
 ## **1. Introduction**
 
@@ -7,7 +8,7 @@ Welcome to the documentation for **DRCDV**, the **Dynamic and Responsive Chat Ap
 
 - **Purpose**:
 
-DRVDV is a chat application developed using React, Socket.IO, Node.js/Express, and MongoDB. It aims to create a dynamic, interactive user interface that seamlessly integrates with back-end services. The application supports text messaging and dynamic visualization of various data types within the chat interface, such as tables, images, and text.
+DRVDV is a chat application developed using React, Socket.IO, Node.js/Express, and MongoDB. It aims to create a dynamic, interactive user interface that seamlessly integrates with server services. The application supports text messaging and dynamic visualization of various data types within the chat interface, such as tables, images, and text.
 
 - **Scope**:
 
@@ -21,218 +22,197 @@ The application primarily offers a list of users and allows the initiation of ch
 
 The main driving assumption is that **DRCDV is a sub-application within a larger-scaled business platform**, so all users recorded in the database are contactable.
 
-
 ## **3. Installation and Setup**
 
 ### **Prerequisites**
 
 Before you start, ensure you have the following installed on your machine:
 
--   **[Node.js](https://Node.js)** (version 18 or above)
-    
--   **npm** (version 8 or above)
-    
--   **MongoDB** (or use MongoDB Atlas for a cloud database)
-    
--   **Docker** (for containerization)
-    
--   **Git**
-    
+- **[Node.js](https://Node.js)** (version 18 or above)
+- **npm** (version 8 or above)
+- **MongoDB** (or use MongoDB Atlas for a cloud database)
+- **Docker** (for containerization)
+- **Git**
 
 ### **Clone the Repository**
 
 1.  Open your terminal and clone the repository:
-    
+
     sh
-    
+
     ```
     git clone https://github.com/yourusername/DRCDV.git
-    
+
     ```
-    
+
 2.  Navigate into the project directory:
-    
+
     sh
-    
+
     ```
     cd DRCDV
-    
-    ```
-    
 
-### **Backend Setup with Docker**
+    ```
 
-1.  Navigate to the backend directory:
-    
+### **server Setup with Docker**
+
+1.  Navigate to the server directory:
+
     sh
-    
+
     ```
-    cd backend
-    
+    cd server
+
     ```
-    
-2.  Create a `.env` file in the backend directory and add your environment variables:
-    
+
+2.  Create a `.env` file in the server directory and add your environment variables:
+
     sh
-    
+
     ```
     touch .env
-    
+
     ```
-    
+
     Example `.env` file:
-    
+
     ```
     DATABASE_URL="YOUR MONGO URI"
     JWT_SECRET="****"
     PORT=3001
-    
+
     ```
-    
+
 3.  Build the Docker image:
-    
+
     sh
-    
+
     ```
-    docker build -t drcdv-backend .
-    
+    docker build -t drcdv-server .
+
     ```
-    
+
 4.  Run the Docker container:
-    
+
     sh
-    
+
     ```
-    docker run -d -p 3001:3001 --name drcdv-backend --env-file .env drcdv-backend
-    
+    docker run -d -p 3001:3001 --name drcdv-server --env-file .env drcdv-server
+
     ```
-    
 
 ### **Frontend Setup with Docker**
 
 1.  Navigate to the frontend directory:
-    
+
     sh
-    
+
     ```
     cd frontend
-    
+
     ```
-    
+
 2.  Create a `.env` file in the frontend directory and add your environment variables:
-    
+
     sh
-    
+
     ```
     touch .env
-    
+
     ```
-    
+
     Example `.env` file:
-    
+
     ```
-    VITE_BACKEND_URL="http://localhost:3001/api/v1"
+    VITE_server_URL="http://localhost:3001/api/v1"
     VITE_SOCKET_HOST="http://localhost:3001"
-    
+
     ```
-    
+
 3.  Build the Docker image:
-    
+
     sh
-    
+
     ```
     docker build -t drcdv-frontend .
-    
+
     ```
-    
+
 4.  Run the Docker container:
-    
+
     sh
-    
+
     ```
     docker run -d -p 80:80 --name drcdv-frontend --env-file .env drcdv-frontend
-    
+
     ```
-    
 
 ### **Deploying to Vercel and Render**
 
-#### **Backend Deployment to Render**
+#### **server Deployment to Render**
 
 1.  Login to your Render account.
-    
 2.  Create a new Web Service.
-    
-3.  Connect your GitHub repository and choose the `backend` directory for deployment.
-    
+3.  Connect your GitHub repository and choose the `server` directory for deployment.
 4.  Set the environment variables in the Render dashboard:
-    
-    -   `DATABASE_URL`
-        
-    -   `JWT_SECRET`
-        
-    -   `PORT`
-        
-5.  Deploy your backend service.
-    
+
+    - `DATABASE_URL`
+    - `JWT_SECRET`
+    - `PORT`
+
+5.  Deploy your server service.
 
 #### **Frontend Deployment to Vercel**
 
 1.  Login to your Vercel account.
-    
 2.  Create a new Project.
-    
 3.  Connect your GitHub repository and choose the `frontend` directory for deployment.
-    
 4.  Set the environment variables in the Vercel dashboard:
-    
-    -   `VITE_BACKEND_URL`
-        
-    -   `VITE_SOCKET_HOST`
-        
+
+    - `VITE_server_URL`
+    - `VITE_SOCKET_HOST`
+
 5.  Deploy your frontend application.
-    
 
 ### **Running Locally**
 
 To run the application locally for development and testing without Docker:
 
-1.  **Backend**:
-    
+1.  **server**:
+
     sh
-    
+
     ```
-    cd backend
+    cd server
     npm install
     npm start
-    
+
     ```
-    
+
 2.  **Frontend**:
-    
+
     sh
-    
+
     ```
     cd frontend
     npm install
     npm start
-    
+
     ```
-    
 
 ### **Accessing the Application**
 
-Once both the backend and front end are deployed, you can access your application using the URL provided by Vercel for the front end and Render for the back end.
+Once both the server and front end are deployed, you can access your application using the URL provided by Vercel for the front end and Render for the back end.
 
 ### **Common Issues and Troubleshooting**
 
--   **Issue**: Backend service not connecting to MongoDB.
-    
-    -   **Solution**: Check your MongoDB URI and ensure your database service is running.
-        
--   **Issue**: Frontend not connecting to backend API.
-    
-    -   **Solution**: Verify the API URL in the `.env` file and ensure the backend service is accessible.
+- **Issue**: server service not connecting to MongoDB.
+
+  - **Solution**: Check your MongoDB URI and ensure your database service is running.
+
+- **Issue**: Frontend not connecting to server API.
+
+  - **Solution**: Verify the API URL in the `.env` file and ensure the server service is accessible.
 
 ## **4. Usage Guidelines**
 
@@ -264,8 +244,7 @@ Once both the backend and front end are deployed, you can access your applicatio
    ![S](/screens/s18.jpeg "Screen")
 
 6. **Access Channels**  
-   From the channels list button on the sidebar, users can access the selected channel and start messaging.  
-   
+   From the channels list button on the sidebar, users can access the selected channel and start messaging.
 
 7. **Create Instant Message**  
    Users can create an instant text message with the possibility to add downloadable attachments. Only images and CSV tables can be rendered in the message body.  
@@ -299,13 +278,13 @@ This function fetches the list of channels where the user is a member.
 
 **_Return_**:
 
-The function constructs a URL with the provided query parameters and sends a GET request to the backend API. If the request is successful, it *return*s the fetched data. Otherwise, it throws an error.
+The function constructs a URL with the provided query parameters and sends a GET request to the server API. If the request is successful, it *return*s the fetched data. Otherwise, it throws an error.
 
 ### `createChannel`
 
 **_Description_**:
 
-This function creates a new channel in the backend.
+This function creates a new channel in the server.
 
 **Parameters**:
 
@@ -315,7 +294,7 @@ This function creates a new channel in the backend.
 
 **_Return_**:
 
-The function sends a POST request to the backend API with the channel data. If the request is successful, it *return*s the created channel data. Otherwise, it throws an error.
+The function sends a POST request to the server API with the channel data. If the request is successful, it *return*s the created channel data. Otherwise, it throws an error.
 
 ### `checkChannelExists`
 
@@ -331,7 +310,7 @@ This function checks if a channel already exists between two users.
 
 **_Return_**:
 
-The function constructs a URL with the provided user IDs and sends a GET request to the backend API. If the request is successful, it *return*s a boolean value indicating whether the channel exists or not. Otherwise, it throws an error.
+The function constructs a URL with the provided user IDs and sends a GET request to the server API. If the request is successful, it *return*s a boolean value indicating whether the channel exists or not. Otherwise, it throws an error.
 
 ### `getChannelById`
 
@@ -347,7 +326,7 @@ This function fetches the details of a single channel by its ID.
 
 **_Return_**:
 
-The function sends a GET request to the backend API with the channel ID. If the request is successful, it *return*s the fetched channel data. Otherwise, it throws an error.
+The function sends a GET request to the server API with the channel ID. If the request is successful, it *return*s the fetched channel data. Otherwise, it throws an error.
 
 ### `getChannelMessages`
 
@@ -363,7 +342,7 @@ This function fetches the messages in a channel by its ID.
 
 **_Return_**:
 
-The function sends a GET request to the backend API with the channel ID. If the request is successful, it *return*s the fetched messages. Otherwise, it throws an error.
+The function sends a GET request to the server API with the channel ID. If the request is successful, it *return*s the fetched messages. Otherwise, it throws an error.
 
 ### `getMessagesByChannelId`
 
@@ -379,7 +358,7 @@ This function fetches the messages in a channel by its ID.
 
 **_Return_**:
 
-The function sends a GET request to the backend API with the channel ID. If the request is successful, it *return*s the fetched messages. Otherwise, it throws an error.
+The function sends a GET request to the server API with the channel ID. If the request is successful, it *return*s the fetched messages. Otherwise, it throws an error.
 
 #### Users API
 
@@ -395,7 +374,7 @@ This function handles the user signup process.
 
 **_Return_**:
 
-The function sends a POST request to the backend API with the form data. If the request is successful, it *return*s the user's signup response. Otherwise, it throws an error.
+The function sends a POST request to the server API with the form data. If the request is successful, it *return*s the user's signup response. Otherwise, it throws an error.
 
 ### `getUserProfileImage`
 
@@ -409,7 +388,7 @@ This function fetches the profile image of a user by their ID.
 
 **_Return_**:
 
-The function sends a GET request to the backend API to retrieve the user's profile image. If the request is successful, it *return*s the profile image data (as a Blob). Otherwise, it throws an error.
+The function sends a GET request to the server API to retrieve the user's profile image. If the request is successful, it *return*s the profile image data (as a Blob). Otherwise, it throws an error.
 
 ### `login`
 
@@ -423,7 +402,7 @@ This function handles the user login process.
 
 **_Return_**:
 
-The function sends a POST request to the backend API with the login credentials. If the request is successful, it *return*s the user's login response. Otherwise, it throws an error.
+The function sends a POST request to the server API with the login credentials. If the request is successful, it *return*s the user's login response. Otherwise, it throws an error.
 
 ### `getUserInfo`
 
@@ -437,7 +416,7 @@ This function fetches the information of a user by their ID.
 
 **_Return_**:
 
-The function sends a GET request to the backend API to retrieve the user's information. If the request is successful, it *return*s the user's information. Otherwise, it throws an error.
+The function sends a GET request to the server API to retrieve the user's information. If the request is successful, it *return*s the user's information. Otherwise, it throws an error.
 
 ### `getUsers`
 
@@ -451,7 +430,7 @@ This function fetches the list of all users.
 
 **_Return_**:
 
-The function sends a GET request to the backend API with the provided query parameters. If the request is successful, it *return*s the list of users. Otherwise, it throws an error.
+The function sends a GET request to the server API with the provided query parameters. If the request is successful, it *return*s the list of users. Otherwise, it throws an error.
 
 ## **6. Code Documentation**
 
