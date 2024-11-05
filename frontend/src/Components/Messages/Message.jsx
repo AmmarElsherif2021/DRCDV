@@ -78,7 +78,7 @@ const MessageContent = React.memo(
               style={{
                 fontSize: '10px',
                 color: '#666',
-                marginTop: '4px',
+                marginTop: '1px',
                 marginLeft: '0.75rem',
               }}
             >
@@ -128,6 +128,7 @@ const Attachments = React.memo(({ message }) => (
         }}
       >
         <EnhancedAttachment attachment={attachment} />
+        <small style={{ color: '#999999' }}>{attachment.filename}</small>
       </div>
     ))}
   </>

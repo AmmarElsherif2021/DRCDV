@@ -58,9 +58,10 @@ export const CreateMessage = ({ channelId }) => {
     <Container
       className='p-4 d-flex flex-column gap-3'
       style={{
-        height: '6rem',
-        //backgroundColor: '#86ddd3',
+        height: 'auto',
+        //backgroundColor: '#9ddaad',
         margin: '0.3rem',
+        padding: 0,
       }}
     >
       <Form onSubmit={handleSubmit}>
@@ -76,7 +77,7 @@ export const CreateMessage = ({ channelId }) => {
               placeholder='Type your message...'
               value={text}
               onChange={(e) => setText(e.target.value)}
-              style={{ width: '35vw' }}
+              style={{ width: '100%' }}
             />
           </Form.Group>
           <Form.Group
@@ -105,12 +106,13 @@ export const CreateMessage = ({ channelId }) => {
             </Button>
           </Form.Group>
         </div>
-        {attachments.length > 0 && (
-          <div className='d-flex align-items-center gap-2 mt-2'>
-            <Paperclip color='#1CCB8F' size={20} />
-            <span>{attachments.length} attachment(s)</span>
-          </div>
-        )}
+        {attachments.length > 0 &&
+          attachments?.map((x) => (
+            <div className='d-flex align-items-center gap-2 mt-2'>
+              <Paperclip color='#1CCB8F' size={20} />
+              <span>{x.filename} </span>
+            </div>
+          ))}
       </Form>
     </Container>
   )
