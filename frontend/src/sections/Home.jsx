@@ -48,7 +48,7 @@ export function Home() {
           }}
         >
           <img src={logo} style={{ width: '9rem', marginBottom: '3rem' }} />
-          <h2 style={{ backgroundColor: '#1aac', marginBottom: '3rem' }}>
+          <h2 style={{ marginBottom: '3rem' }}>
             Sign in and enjoy messaging experience using DRCDV
           </h2>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
