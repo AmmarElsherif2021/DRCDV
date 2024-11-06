@@ -108,7 +108,11 @@ export const ChatSpace = ({ channelId }) => {
       }}
     >
       {channelMembers.length > 2 ? (
-        <Image src={channelAvatar} alt='Channel' style={{ width: '5rem' }} />
+        <Image
+          src={channelAvatar}
+          alt='Channel'
+          style={{ width: '6rem', height: '6rem' }}
+        />
       ) : (
         <ProfileImage
           userId={
