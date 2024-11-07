@@ -1,6 +1,9 @@
 # DRCDV Technical Documentation (UNDER DEVELOPMENT!)
 
 https://drcdv.vercel.app/
+use the following to log in:
+**username**: guest
+**password**: 1234
 
 ## **1. Introduction**
 
