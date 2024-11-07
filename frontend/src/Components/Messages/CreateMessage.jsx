@@ -56,61 +56,58 @@ export const CreateMessage = ({ channelId }) => {
 
   return (
     <Container
-      className='p-4 d-flex flex-column gap-3'
+      className='p-2 d-flex flex-column gap-2'
       style={{
         height: 'auto',
-        //backgroundColor: '#9ddaad',
         margin: '0.3rem',
         padding: 0,
       }}
     >
       <Form onSubmit={handleSubmit}>
         {showAlert && (
-          <Alert variant='success' style={{ height: '2rem', padding: 0 }}>
+          <Alert variant='success' className='mb-2'>
             Message sent successfully!
           </Alert>
         )}
-        <div className='d-flex align-items-center gap-3'>
-          <Form.Group controlId='messageInput' className='mb-0 flex-grow-1'>
-            <Form.Control
-              type='text'
-              placeholder='Type your message...'
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              style={{ width: '100%' }}
-            />
-          </Form.Group>
-          <Form.Group
-            controlId='fileInput'
-            className='mb-0 d-flex align-items-center gap-3'
+        <Form.Group controlId='messageInput' className='mb-2'>
+          <Form.Control
+            type='text'
+            placeholder='Type your message...'
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            style={{ width: '100%' }}
+          />
+        </Form.Group>
+        <Form.Group
+          controlId='fileInput'
+          className='d-flex flex-column flex-md-row align-items-center gap-2'
+        >
+          <Form.Control
+            type='file'
+            multiple
+            onChange={handleAttachmentChange}
+            style={{ cursor: 'pointer' }}
+          />
+          <Button
+            variant='primary'
+            type='submit'
+            disabled={!text.trim() || sending}
+            style={{
+              backgroundColor: '#1CCB8F',
+              color: 'black',
+              border: 'none',
+              whiteSpace: 'nowrap',
+              minWidth: '100px',
+            }}
           >
-            <Form.Control
-              type='file'
-              multiple
-              onChange={handleAttachmentChange}
-              style={{ cursor: 'pointer', width: '20vw' }}
-            />
-            <Button
-              variant='primary'
-              type='submit'
-              disabled={!text.trim() || sending}
-              style={{
-                backgroundColor: '#1CCB8F',
-                color: 'black',
-                border: 'none',
-                whiteSpace: 'nowrap',
-                minWidth: '100px',
-              }}
-            >
-              {sending ? 'Sending...' : 'Send'}
-            </Button>
-          </Form.Group>
-        </div>
+            {sending ? 'Sending...' : 'Send'}
+          </Button>
+        </Form.Group>
         {attachments.length > 0 &&
-          attachments?.map((x) => (
-            <div className='d-flex align-items-center gap-2 mt-2'>
+          attachments.map((attachment, index) => (
+            <div key={index} className='d-flex align-items-center gap-2 mt-2'>
               <Paperclip color='#1CCB8F' size={20} />
-              <span>{x.filename} </span>
+              <span>{attachment.filename}</span>
             </div>
           ))}
       </Form>

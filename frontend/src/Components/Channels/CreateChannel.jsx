@@ -107,7 +107,7 @@ export function CreateChannel() {
   return (
     <Container className='py-4'>
       <Row className='justify-content-center'>
-        <Col md={8} style={{ width: '23rem' }}>
+        <Col md={8} style={{ width: '99%' }}>
           <Form onSubmit={handleSubmit}>
             <Card className='shadow-sm'>
               <Card.Header className='bg-white'>

@@ -26,7 +26,7 @@ export const listChannels = async (queryParams) => {
 // Create a new channel
 export const createChannel = async (token, channel) => {
   try {
-    console.log('Sending to API:', channel) // Logging the entire channel object
+    console.log('Sending to API:', channel) // channel object
     const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/channels`, {
       method: 'POST',
       headers: {
@@ -35,40 +35,56 @@ export const createChannel = async (token, channel) => {
       },
       body: JSON.stringify(channel),
     })
-    const responseBody = await res.json() // Directly parse the response as JSON
-    console.log(`API Creating channel body:`, responseBody) // Logging the JSON response directly
+    const responseBody = await res.json()
+    console.log(`API Creating channel body:`, responseBody)
     if (!res.ok) {
       throw new Error(`Error creating channel: ${res.statusText}`)
     }
-    return responseBody // Return the parsed JSON response
+    return responseBody
   } catch (error) {
     console.error('Error creating channel:', error)
     throw error
   }
 }
-//check if channel exists
-export const checkChannelExists = async (userId1, userId2) => {
+const checkChannel = async (queryString, token) => {
   try {
-    const queryString = new URLSearchParams({ userId1, userId2 }).toString()
     const res = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/channels/check?${queryString}`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/v1/channels?${queryString}`,
       {
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
       },
     )
+
     if (!res.ok) {
       throw new Error(`Error checking channel: ${res.statusText}`)
     }
-    const data = await res.json()
-    return data.exists
+
+    const channels = await res.json()
+    // Check if any channel exists with both users
+    return channels.length > 0
   } catch (error) {
     console.error('Error checking channel:', error)
     throw error
   }
 }
 
+export const checkChannelExists = async (userId1, userId2, token) => {
+  try {
+    // I only need to check channels where the current user is a member
+    const queryString = new URLSearchParams({
+      userId: userId1,
+    }).toString()
+
+    const exists = await checkChannel(queryString, token)
+    return exists
+  } catch (error) {
+    console.error('Error checking channel:', error)
+    throw error
+  }
+}
 // Get a single channel by ID
 export const getChannelById = async (channelId, token) => {
   try {

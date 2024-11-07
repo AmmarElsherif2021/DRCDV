@@ -34,12 +34,14 @@ export function Home() {
     <>
       {!userData ? (
         <Container
-          className='text-center mt-5'
+          className='text-center'
           style={{
             position: 'fixed',
             top: 0,
-            minWidth: '100vw',
-            minHeight: '100vh',
+            left: 0,
+            right: 0,
+            width: '100vw',
+            height: '100vh',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -47,7 +49,7 @@ export function Home() {
             //backgroundColor: '#a12223',
           }}
         >
-          <img src={logo} style={{ width: '9rem', marginBottom: '3rem' }} />
+          <img src={logo} style={{ width: '20%', marginBottom: '3rem' }} />
           <h2 style={{ marginBottom: '3rem' }}>
             Sign in and enjoy messaging experience using DRCDV
           </h2>
@@ -79,7 +81,7 @@ export function Home() {
           style={{
             width: '100vw',
             height: '100vh',
-            minWidth: '7rem', // minimum width for mobile
+            minWidth: '20rem',
             paddingLeft: 0,
           }}
         >

@@ -39,35 +39,40 @@ export function Header() {
       style={{
         position: 'fixed',
         top: '4rem',
-        left: isSmallScreen ? 0 : 'auto',
-        right: isSmallScreen ? 'auto' : 0,
+        right: '1rem',
+        //transform: 'translateX(-50%)',
         zIndex: 1000,
         width: isSmallScreen ? '100vw' : '15rem',
       }}
     >
+      {' '}
       <Card className='border-0'>
+        {' '}
         <Card.Body className='d-flex flex-column align-items-center p-4'>
-          <div>
+          {' '}
+          <div className='mb-3'>
             {' '}
             <ProfileImage
               userId={userData.userId}
               size={80}
               showStatus={false}
-            />
-          </div>
-          <div className='mb-3'>
-            {userData && <User id={userData.userId} showEmail={true} />}
-          </div>
+            />{' '}
+          </div>{' '}
+          <div className='mb-3 text-center'>
+            {' '}
+            {userData && <User id={userData.userId} showEmail={true} />}{' '}
+          </div>{' '}
           <Button
             variant='outline-danger'
             size={isSmallScreen ? 'lg' : 'sm'}
             onClick={handleLogout}
             className='w-100'
           >
-            Logout
-          </Button>
-        </Card.Body>
-      </Card>
+            {' '}
+            Logout{' '}
+          </Button>{' '}
+        </Card.Body>{' '}
+      </Card>{' '}
     </div>
   )
 
@@ -77,7 +82,7 @@ export function Header() {
       bg='light'
       expand='lg'
       className='shadow-sm'
-      style={{ height: '4.2rem' }}
+      style={{ height: '4.2rem', width: '100%', padding: '1% 9% 1% 1%' }}
     >
       <Container fluid>
         <Navbar.Brand href='/'>

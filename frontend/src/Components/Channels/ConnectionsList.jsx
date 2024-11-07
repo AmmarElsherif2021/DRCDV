@@ -1,9 +1,10 @@
-/* eslint-disable react/prop-types */
+import React from 'react'
 import { ListGroup } from 'react-bootstrap'
 import { User } from '../User/User'
 import { useAuth } from '../../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
 import { ProfileImage } from '../User/ProfileImage'
+import classNames from 'classnames'
 
 export const ConnectionsList = ({ channels, handleChannelClick }) => {
   const [token] = useAuth()
@@ -26,10 +27,7 @@ export const ConnectionsList = ({ channels, handleChannelClick }) => {
   )
 
   return (
-    <div
-      className='connections-list'
-      style={{ height: '72vh', overflowY: 'auto' }}
-    >
+    <div className='connections-list h-100 overflow-auto'>
       <ListGroup variant='flush'>
         {directMessages.map((channel) => {
           const otherUserId = channel.title
@@ -41,25 +39,23 @@ export const ConnectionsList = ({ channels, handleChannelClick }) => {
               key={channel._id}
               action
               onClick={() => handleChannelClick(channel._id)}
-              className='py-2'
+              className={classNames('py-3 px-4', {
+                'bg-hover': true,
+                'border-bottom': true,
+                'border-secondary-subtle': true,
+              })}
               style={{
                 cursor: 'pointer',
-                borderLeft: 'none',
-                borderRight: 'none',
                 transition: 'background-color 0.2s ease',
               }}
             >
               <div className='d-flex align-items-center'>
-                <ProfileImage
-                  userId={otherUserId}
-                  size={40}
-                  showStatus={true}
-                />
+                <ProfileImage userId={otherUserId} size={48} showStatus />
 
                 {/* User Info */}
-                <div className='flex-grow-1'>
+                <div className='flex-grow-1 ms-3'>
                   <div className='d-flex justify-content-between align-items-center'>
-                    <div className='text-truncate' style={{ maxWidth: '70%' }}>
+                    <div className='text-truncate font-medium'>
                       <User id={otherUserId} showEmail={false} />
                     </div>
                   </div>

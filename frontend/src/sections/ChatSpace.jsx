@@ -1,15 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Container,
-  Row,
-  Col,
-  //ListGroup,
-  Spinner,
-  Image,
-  Dropdown,
-} from 'react-bootstrap'
+import { Container, Row, Col, Spinner, Image, Dropdown } from 'react-bootstrap'
 import { ProfileImage } from '../Components/User/ProfileImage.jsx'
 import { CreateMessage } from '../Components/Messages/CreateMessage.jsx'
 import { getChannelById } from '../API/channels'
@@ -96,47 +88,50 @@ export const ChatSpace = ({ channelId }) => {
     return <Spinner animation='border' role='status' />
   }
 
-  //Channel title mini component
   const ChannelTitle = channelData?.title ? (
     <div
       className='d-flex flex-row align-items-center'
-      style={{
-        //backgroundColor: '#cdf',
-        width: '10rem',
-        paddingTop: '1em',
-        paddingLeft: '1em',
-      }}
+      style={{ width: '100%', paddingTop: '1em', paddingLeft: '1em' }}
     >
       {channelMembers.length > 2 ? (
         <Image
           src={channelAvatar}
           alt='Channel'
-          style={{ width: '6rem', height: '6rem' }}
+          style={{ width: '3rem', height: '3rem', marginRight: '0.5rem' }}
         />
       ) : (
         <ProfileImage
           userId={
             channelData.title.split(',').filter((x) => x !== userData.userId)[0]
           }
-          size={40}
+          size={32}
           showStatus={true}
         />
       )}
       <Dropdown>
         <Dropdown.Toggle
-          variant='link'
+          variant='light'
           id='dropdown-basic'
-          style={{ fontSize: '1.1em', color: '#000' }}
+          className='d-flex align-items-center'
+          style={{
+            fontSize: '1rem',
+            //sfontWeight: 'bold',
+            color: '#333',
+            border: 'none',
+            backgroundColor: 'transparent',
+            padding: '1rem',
+            cursor: 'pointer',
+          }}
         >
-          {(
-            <User
-              id={
-                channelData.title
-                  .split(',')
-                  .filter((x) => x !== userData.userId)[0]
-              }
-            />
-          ) || 'Channel Members'}
+          <User
+            id={
+              channelData.title
+                .split(',')
+                .filter((x) => x !== userData.userId)[0]
+            }
+            className='mr-2'
+          />
+          <span className='caret'></span>
         </Dropdown.Toggle>
         <Dropdown.Menu>
           {channelMembers.map(
@@ -153,6 +148,7 @@ export const ChatSpace = ({ channelId }) => {
   ) : (
     ''
   )
+
   if (!channelId) {
     const defaultOptions = {
       loop: true,
@@ -168,15 +164,17 @@ export const ChatSpace = ({ channelId }) => {
         style={{
           position: 'absolute',
           padding: '1rem',
-          right: '1rem',
+          right: 0,
+          //left: '1rem',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          width: '87%',
+          width: '88%',
+          minWidth: '20rem',
           height: '90%',
           justifyContent: 'center',
           textAlign: 'center',
-          //backgroundColor: '#4442ab',
+          backgroundColor: '#ffffff',
         }}
       >
         <div
@@ -184,7 +182,6 @@ export const ChatSpace = ({ channelId }) => {
             position: 'relative',
             width: '65%',
             height: 'auto',
-            //marginBottom: '2rem',
             zIndex: 0,
             overflow: 'hidden',
           }}
@@ -193,14 +190,15 @@ export const ChatSpace = ({ channelId }) => {
             autoplay={defaultOptions.autoplay}
             loop={defaultOptions.loop}
             src={defaultOptions.animationData}
-            style={{ height: '12rem', width: '12rem' }}
+            style={{ height: '52%', width: '52%' }}
           />
         </div>
         <h1
           style={{
-            fontSize: '3.5rem',
+            fontSize: '1.4em',
             fontWeight: 400,
             color: 'black',
+            padding: '0 5rem',
           }}
         >
           Navigate to connections or channels and start messaging
@@ -219,7 +217,6 @@ export const ChatSpace = ({ channelId }) => {
         height: '98%',
         width: '110%',
         margin: 0,
-        //backgroundColor: '#33ff12',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -233,7 +230,6 @@ export const ChatSpace = ({ channelId }) => {
               height: '3rem',
               width: '100%',
               padding: 0,
-              //backgroundColor: '#333333',
             }}
           >
             {ChannelTitle}

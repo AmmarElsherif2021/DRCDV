@@ -1,6 +1,11 @@
 /* eslint-disable react/prop-types */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { listChannels, createChannel, getChannelById } from '../API/channels'
+import {
+  listChannels,
+  createChannel,
+  getChannelById,
+  checkChannelExists,
+} from '../API/channels'
 import { getUsers } from '../API/users'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
@@ -109,16 +114,19 @@ export function Sidebar() {
 
   const decodeToken = (token) => {
     if (!token || typeof token !== 'string') {
-      console.error('Invalid token:', 'Token must be a valid string')
+      console.error('Invalid token format:', typeof token)
       return null
     }
+
     try {
       const decoded = jwtDecode(token)
-      const userId = decoded.sub
-      //const username = decoded.username
-      return { userId }
+      console.log('Token decoded successfully:', {
+        sub: decoded.sub,
+        exp: new Date(decoded.exp * 1000).toISOString(),
+      })
+      return { userId: decoded.sub }
     } catch (error) {
-      console.error('Invalid token:', error)
+      console.error('Token decode error:', error)
       return null
     }
   }
@@ -141,20 +149,51 @@ export function Sidebar() {
   })
 
   const handleCreateChannels = async () => {
+    if (!token || !userData?.userId) {
+      console.error('Missing token or user ID')
+      return
+    }
+
     try {
       const users = await getUsers()
+      console.log('Retrieved users:', users.length)
+
       for (const user of users) {
         if (user._id !== userData.userId) {
-          const title = `${userData.userId},${user._id}`
-          const members = [{ user: user._id, role: 'admin' }]
-          await createChannelMutation.mutateAsync({ title, members })
+          try {
+            // Get existing channels for the current user
+            const channels = await listChannels({
+              userId: userData.userId,
+            })
+            const dualChannels = channels.filter((ch) => ch.members.length < 3)
+            // Check if a channel with this user already exists
+            const channelExists = dualChannels?.some((channel) => {
+              const members = channel.members.map((m) => m.user)
+              return members.includes(user._id)
+            })
+
+            if (!channelExists) {
+              console.log(`Creating new channel with user ${user._id}`)
+              const title = `${userData.userId},${user._id}`
+              const members = [{ user: user._id, role: 'admin' }]
+
+              await createChannelMutation.mutateAsync({
+                title,
+                members,
+              })
+            } else {
+              console.log(`Channel already exists with user ${user._id}`)
+            }
+          } catch (channelError) {
+            console.error(`Error processing user ${user._id}:`, channelError)
+            continue
+          }
         }
       }
     } catch (error) {
-      console.error('Error creating channels:', error)
+      console.error('Error in handleCreateChannels:', error)
     }
   }
-
   const handleChannelClick = async (channelId) => {
     try {
       const channel = await getChannelById(channelId, token)
@@ -196,7 +235,7 @@ export function Sidebar() {
     width: '8rem',
     height: '100%',
     padding: 0,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff9fa',
   }
 
   if (!userData) {
@@ -209,12 +248,14 @@ export function Sidebar() {
         <div
           style={{
             position: 'absolute',
-            width: '99%',
+            minWidth: '99vw',
             height: '100%',
             backgroundColor: 'white',
             padding: '7rem',
+            //marginTop: '4rem',
             textAlign: 'center',
             zIndex: 1000,
+            //backgroundColor: '#fcc9fa',
           }}
         >
           <h1 style={{ fontSize: '3.5em' }}>WELCOME TO DRCDV</h1>
