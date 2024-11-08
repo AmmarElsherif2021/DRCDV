@@ -9,7 +9,7 @@ import {
 import { getUsers } from '../API/users'
 import { useAuth } from '../contexts/AuthContext'
 import { jwtDecode } from 'jwt-decode'
-import { Card, Button, Offcanvas } from 'react-bootstrap'
+import { Card, Button, Offcanvas, Col } from 'react-bootstrap'
 import { CreateChannel } from '../Components/Channels/CreateChannel'
 import { useChannel } from '../contexts/ChannelContext'
 import { useState, useEffect } from 'react'
@@ -23,14 +23,14 @@ import { ChannelsList } from '../Components/Channels/ChannelsList'
 
 const sidebarStyle = {
   width: '7rem',
-  height: '95vh',
+  height: '100%',
   borderRight: '3px solid #ddd',
-  backgroundColor: '#f8f9fa',
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'space-around',
   alignItems: 'center',
   paddingTop: '7rem',
-  //position: 'fixed',
+  position: 'absolute',
 }
 
 const iconDivStyle = {
@@ -232,10 +232,11 @@ export function Sidebar() {
 
   const channels = channelsQuery.data ?? []
   const offcanvasStyle = {
-    width: '8rem',
+    width: '100%',
+    //minWidth: '100vw',
     height: '100%',
     padding: 0,
-    backgroundColor: '#fff9fa',
+    //backgroundColor: '#afa',
   }
 
   if (!userData) {
@@ -243,7 +244,14 @@ export function Sidebar() {
   }
 
   return (
-    <div style={{ height: '100vh', overflowY: 'auto' }}>
+    <div
+      style={{
+        height: '100%',
+        minHeight: '100%',
+        //backgroundColor: '#224772',
+        overflowY: 'auto',
+      }}
+    >
       {channels && channels.length < 1 ? (
         <div
           style={{
@@ -255,7 +263,7 @@ export function Sidebar() {
             //marginTop: '4rem',
             textAlign: 'center',
             zIndex: 1000,
-            //backgroundColor: '#fcc9fa',
+            //backgroundColor: '#faaafa',
           }}
         >
           <h1 style={{ fontSize: '3.5em' }}>WELCOME TO DRCDV</h1>
@@ -270,7 +278,7 @@ export function Sidebar() {
           </Button>
         </div>
       ) : (
-        <>
+        <Col className='h-100'>
           <SidebarContent
             handleShowConnections={handleShowConnections}
             handleShowCreateChannel={handleShowCreateChannel}
@@ -284,7 +292,10 @@ export function Sidebar() {
             show={showConnections}
             onHide={handleCloseConnections}
             placement='start'
-            style={{ ...offcanvasStyle, width: '20rem' }}
+            style={{
+              ...offcanvasStyle,
+              width: '20rem',
+            }}
           >
             <Offcanvas.Header closeButton>
               <Offcanvas.Title>Connections</Offcanvas.Title>
@@ -333,7 +344,7 @@ export function Sidebar() {
               )}
             </Offcanvas.Body>
           </Offcanvas>
-        </>
+        </Col>
       )}
     </div>
   )

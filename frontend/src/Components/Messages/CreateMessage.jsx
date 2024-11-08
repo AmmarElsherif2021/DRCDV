@@ -4,8 +4,11 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useMessageManagement } from './useMessageManagement'
 import { Paperclip } from 'lucide-react'
 
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024 // 5 MB
+
 export const CreateMessage = ({ channelId }) => {
   const [showAlert, setShowAlert] = useState(false)
+  const [showSizeAlert, setShowSizeAlert] = useState(false)
   const [token] = useAuth()
 
   // Use the message management hook
@@ -38,6 +41,12 @@ export const CreateMessage = ({ channelId }) => {
     const filePromises = files.map(
       (file) =>
         new Promise((resolve, reject) => {
+          if (file.size > MAX_ATTACHMENT_SIZE) {
+            setShowSizeAlert(true)
+            setTimeout(() => setShowSizeAlert(false), 2000)
+            reject(new Error('File size exceeds the limit.'))
+          }
+
           const reader = new FileReader()
           reader.onload = () =>
             resolve({
@@ -67,6 +76,12 @@ export const CreateMessage = ({ channelId }) => {
         {showAlert && (
           <Alert variant='success' className='mb-2'>
             Message sent successfully!
+          </Alert>
+        )}
+        {showSizeAlert && (
+          <Alert variant='danger' className='mb-2'>
+            Attachment size exceeds the limit of{' '}
+            {MAX_ATTACHMENT_SIZE / (1024 * 1024)} MB.
           </Alert>
         )}
         <Form.Group controlId='messageInput' className='mb-2'>

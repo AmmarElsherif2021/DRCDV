@@ -40,8 +40,8 @@ export function Home() {
             top: 0,
             left: 0,
             right: 0,
-            width: '100vw',
-            height: '100vh',
+            width: '100%',
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -79,9 +79,13 @@ export function Home() {
           fluid
           className='bg-light'
           style={{
-            width: '100vw',
-            height: '100vh',
-            minWidth: '20rem',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            height: '100%',
+            minHeight: '100%',
             paddingLeft: 0,
           }}
         >
@@ -113,8 +117,17 @@ export function Home() {
               />
             </Button>
           )}
-          <Row className='g-0 mt-5' style={{ height: '90vh' }}>
-            <Col xs={2} md={2} className='d-none d-md-block'>
+          <Row
+            className='g-0 mt-5 h-100'
+            style={{
+              position: 'absolute',
+              height: '100%',
+              minHeight: '100%',
+              width: '100%',
+              //backgroundColor: '#4f4',
+            }}
+          >
+            <Col xs={2} md={2} className='d-none d-md-block h-100 '>
               <Sidebar />
             </Col>
             <Col
@@ -134,14 +147,14 @@ export function Home() {
             onHide={toggleVisibility}
             placement='start'
             style={{
-              width: '16.6667%',
-              height: '100vh',
+              width: '14.5%',
+              height: '100%',
               padding: 0,
-              backgroundColor: '#f8f9fa',
-              minWidth: '7rem', // minimum width for mobile
+              backgroundColor: '#fffffa',
+              minWidth: '6rem',
             }}
           >
-            <Offcanvas.Body className='p-0'>
+            <Offcanvas.Body className='p-0 '>
               <Sidebar />
             </Offcanvas.Body>
           </Offcanvas>

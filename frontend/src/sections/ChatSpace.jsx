@@ -91,7 +91,7 @@ export const ChatSpace = ({ channelId }) => {
   const ChannelTitle = channelData?.title ? (
     <div
       className='d-flex flex-row align-items-center'
-      style={{ width: '100%', paddingTop: '1em', paddingLeft: '1em' }}
+      style={{ width: '100%', paddingTop: '2em', paddingLeft: '3em' }}
     >
       {channelMembers.length > 2 ? (
         <Image
@@ -165,7 +165,7 @@ export const ChatSpace = ({ channelId }) => {
           position: 'absolute',
           padding: '1rem',
           right: 0,
-          left: '6rem',
+          left: '7%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

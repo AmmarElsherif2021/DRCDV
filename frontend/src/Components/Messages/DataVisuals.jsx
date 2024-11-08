@@ -400,7 +400,7 @@ const EnhancedAttachment = ({ attachment }) => {
             src={`data:${attachment.contentType};base64,${normalizedData}`}
             alt={attachment.filename}
             className='w-full h-auto object-contain'
-            style={{ maxHeight: MAX_IMAGE_HEIGHT }}
+            style={{ maxHeight: MAX_IMAGE_HEIGHT, width: '100%' }}
           />
         </div>
       </div>

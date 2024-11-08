@@ -2,11 +2,11 @@
 import { useState } from 'react'
 import { Navbar, Nav, Card, Button, Container } from 'react-bootstrap'
 import { useAuth } from '../../contexts/AuthContext'
-//import profileIcon from '../../assets/profile.svg'
 import logo from '../../assets/logo.svg'
 import { User } from '../../Components/User/User'
 import { jwtDecode } from 'jwt-decode'
 import { ProfileImage } from '../User/ProfileImage'
+
 export function Header() {
   const [token, setToken] = useAuth()
   const [showProfile, setShowProfile] = useState(false)
@@ -39,59 +39,50 @@ export function Header() {
       style={{
         position: 'fixed',
         top: '4rem',
-        right: '1rem',
-        //transform: 'translateX(-50%)',
+        right: '0rem',
         zIndex: 1000,
         width: isSmallScreen ? '100vw' : '15rem',
       }}
     >
-      {' '}
       <Card className='border-0'>
-        {' '}
         <Card.Body className='d-flex flex-column align-items-center p-4'>
-          {' '}
           <div className='mb-3'>
-            {' '}
             <ProfileImage
               userId={userData.userId}
               size={80}
               showStatus={false}
-            />{' '}
-          </div>{' '}
+            />
+          </div>
           <div className='mb-3 text-center'>
-            {' '}
-            {userData && <User id={userData.userId} showEmail={true} />}{' '}
-          </div>{' '}
+            {userData && <User id={userData.userId} showEmail={true} />}
+          </div>
           <Button
             variant='outline-danger'
             size={isSmallScreen ? 'lg' : 'sm'}
             onClick={handleLogout}
             className='w-100'
           >
-            {' '}
-            Logout{' '}
-          </Button>{' '}
-        </Card.Body>{' '}
-      </Card>{' '}
+            Logout
+          </Button>
+        </Card.Body>
+      </Card>
     </div>
   )
 
   return (
-    <Navbar
-      fixed='top'
-      bg='light'
-      expand='lg'
-      className='shadow-sm'
-      style={{ height: '4.2rem', width: '100%', padding: '1% 9% 1% 1%' }}
-    >
-      <Container fluid>
+    <Navbar fixed='top' bg='light' expand='lg' className='shadow-sm'>
+      <Container fluid className='px-4'>
         <Navbar.Brand href='/'>
-          <img src={logo} style={{ width: '3.5rem', marginRight: '0.5rem' }} />
+          <img
+            src={logo}
+            style={{ width: '3.5rem', marginRight: '0.5rem' }}
+            alt='DRCDV logo'
+          />
           DRCDV
         </Navbar.Brand>
-        <Nav className='justify-content-end'>
+        <Nav className='ml-auto'>
           {token ? (
-            <div className='position-relative w-100'>
+            <div className='position-relative'>
               <Button
                 variant='link'
                 onClick={toggleProfile}
