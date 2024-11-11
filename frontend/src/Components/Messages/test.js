@@ -1,0 +1,3 @@
+// Update the EnhancedAttachment component to handle image loading states
+
+// ... rest of the component remains the same ...

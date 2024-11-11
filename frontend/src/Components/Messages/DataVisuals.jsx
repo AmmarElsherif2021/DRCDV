@@ -52,19 +52,67 @@ const MAX_TABLE_HEIGHT = 300
 const INITIAL_TABLE_HEIGHT = 200
 const CHART_HEIGHT = 300
 
+//safer version to escape RangeError: Maximum call stack size exceeded
 const normalizeAttachmentData = (data) => {
-  if (!data) return ''
-  if (typeof data === 'string') return data
-  if (typeof data === 'object' && data.data) {
-    if (typeof data.data === 'string') return data.data
-    if (Array.isArray(data.data)) {
-      return btoa(String.fromCharCode.apply(null, data.data))
+  try {
+    // Handle null or undefined
+    if (data == null) return ''
+
+    // Handle strings directly
+    if (typeof data === 'string') return data
+
+    // Handle ArrayBuffer or ArrayBuffer views
+    if (ArrayBuffer.isView(data) || data instanceof ArrayBuffer) {
+      // Convert to Uint8Array if it's an ArrayBuffer
+      const uint8Array = ArrayBuffer.isView(data)
+        ? new Uint8Array(data.buffer)
+        : new Uint8Array(data)
+
+      // Process array in chunks to avoid call stack size exceeded
+      const CHUNK_SIZE = 8192
+      let binary = ''
+      for (let i = 0; i < uint8Array.length; i += CHUNK_SIZE) {
+        const chunk = uint8Array.slice(i, i + CHUNK_SIZE)
+        binary += String.fromCharCode.apply(null, chunk)
+      }
+      return btoa(binary)
     }
+
+    // Handle regular arrays
+    if (Array.isArray(data)) {
+      if (data.length === 0) return ''
+
+      // If array contains numbers, process in chunks
+      if (data.every((item) => typeof item === 'number')) {
+        const CHUNK_SIZE = 8192
+        let binary = ''
+        for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+          const chunk = data.slice(i, i + CHUNK_SIZE)
+          binary += String.fromCharCode.apply(null, chunk)
+        }
+        return btoa(binary)
+      }
+
+      // For non-numeric arrays
+      return JSON.stringify(data)
+    }
+
+    // Handle objects
+    if (typeof data === 'object') {
+      // Handle objects with data property
+      if ('data' in data) {
+        return normalizeAttachmentData(data.data)
+      }
+
+      return JSON.stringify(data)
+    }
+
+    // For all other types
+    return String(data)
+  } catch (error) {
+    console.error('Error in normalizeAttachmentData:', error)
+    return ''
   }
-  if (Array.isArray(data)) {
-    return btoa(String.fromCharCode.apply(null, data))
-  }
-  return data
 }
 
 const parseCSV = (csvString) => {
@@ -376,14 +424,32 @@ const DataTable = ({ data }) => {
 
 const EnhancedAttachment = ({ attachment }) => {
   const [showPlot, setShowPlot] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+  const [imageError, setImageError] = useState(false)
 
   if (!attachment) return null
 
-  const normalizedData = normalizeAttachmentData(attachment.data)
+  let normalizedData
+  try {
+    normalizedData = normalizeAttachmentData(attachment.data)
+  } catch (error) {
+    console.error('Error normalizing attachment data:', error)
+    return null
+  }
+
+  const handleImageLoad = () => {
+    setImageLoading(false)
+    setImageError(false)
+  }
+
+  const handleImageError = () => {
+    setImageLoading(false)
+    setImageError(true)
+  }
 
   if (attachment.contentType?.startsWith(MIME_TYPES.IMAGE)) {
     return (
-      <div className='rounded-lg   overflow-hidden'>
+      <div className='rounded-lg overflow-hidden'>
         <AttachmentHeader
           icon={ImageIcon}
           title={attachment.filename}
@@ -396,67 +462,30 @@ const EnhancedAttachment = ({ attachment }) => {
           }
         />
         <div className='relative'>
+          {imageLoading && (
+            <div className='absolute inset-0 flex items-center justify-center bg-gray-100'>
+              <div className='animate-pulse'>Loading...</div>
+            </div>
+          )}
+          {imageError && (
+            <div className='absolute inset-0 flex items-center justify-center bg-red-50 text-red-500'>
+              Failed to load image
+            </div>
+          )}
           <img
             src={`data:${attachment.contentType};base64,${normalizedData}`}
             alt={attachment.filename}
             className='w-full h-auto object-contain'
             style={{ maxHeight: MAX_IMAGE_HEIGHT, width: '100%' }}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
           />
         </div>
       </div>
     )
   }
 
-  if (attachment.contentType === MIME_TYPES.CSV) {
-    const chartData = attachment.chartData || parseCSV(atob(normalizedData))
-
-    if (chartData) {
-      return (
-        <div className='flex rounded-lg border bg-white overflow-hidden flex-row'>
-          <AttachmentHeader
-            icon={TableIcon}
-            title={attachment.filename}
-            actions={
-              <>
-                <IconButton
-                  icon={showPlot ? ChevronUp : ChartBar}
-                  onClick={() => setShowPlot(!showPlot)}
-                  title={showPlot ? 'Hide Charts' : 'Show Charts'}
-                />
-                <DownloadButton
-                  contentType={attachment.contentType}
-                  data={normalizedData}
-                  filename={attachment.filename}
-                />
-              </>
-            }
-          />
-          <div
-            className={`space-y-2 transition-all duration-300 ${showPlot ? 'py-4' : ''}`}
-          >
-            {showPlot && <ChartView data={chartData} />}
-            <DataTable data={chartData} />
-          </div>
-        </div>
-      )
-    }
-  }
-
-  return (
-    <div className='rounded-lg border bg-white overflow-hidden'>
-      <AttachmentHeader
-        icon={File}
-        title={attachment.filename}
-        actions={
-          <DownloadButton
-            contentType={attachment.contentType}
-            data={normalizedData}
-            filename={attachment.filename}
-          />
-        }
-      />
-    </div>
-  )
+  return null
 }
 
 export default EnhancedAttachment
